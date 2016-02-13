@@ -9,20 +9,23 @@ Elm.Main.make = function (_elm) {
    $Graphics$Element = Elm.Graphics.Element.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
-   $MyModule = Elm.MyModule.make(_elm),
+   $Music = Elm.Music.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $Task = Elm.Task.make(_elm),
-   $TaskTutorial = Elm.TaskTutorial.make(_elm),
    $Time = Elm.Time.make(_elm);
    var _op = {};
-   var main = $Graphics$Element.show($MyModule.addOne(5));
+   var main = $Graphics$Element.show($Music.addOne(5));
+   var playOn = F2(function (str,sig) {
+      return A2($Signal.sampleOn,
+      sig,
+      $Signal.constant($Music.playFile(str)));
+   });
    var clock = $Time.every($Time.second);
-   var printTasks = A2($Signal.map,$TaskTutorial.print,clock);
    var runner = Elm.Native.Task.make(_elm).performSignal("runner",
-   printTasks);
+   A2(playOn,"test.wav",clock));
    return _elm.Main.values = {_op: _op
                              ,clock: clock
-                             ,printTasks: printTasks
+                             ,playOn: playOn
                              ,main: main};
 };

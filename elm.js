@@ -6250,18 +6250,6 @@ Elm.TaskTutorial.make = function (_elm) {
                                      ,print: print
                                      ,getCurrentTime: getCurrentTime};
 };
-var getRandom = function(Task){
-  return function() {
-    return Task.asyncFunction(function(callback){
-      return callback(Task.succeed(Math.getRandom()));
-    });
-  };
-};
-
-var addOne = function(a) {
-  return a + 1;
-};
-
 var make = function make(localRuntime) {
     localRuntime.Native = localRuntime.Native || {};
     localRuntime.Native.Http = localRuntime.Native.Http || {};
@@ -6273,37 +6261,61 @@ var make = function make(localRuntime) {
     var Task = Elm.Native.Task.make(localRuntime);
     var Utils = Elm.Native.Utils.make(localRuntime);
     var Signal = Elm.Native.Signal.make(localRuntime);
-    var Tuple0 = Utils['Tuple0'];
-    var Tuple2 = Utils['Tuple2'];
+
+    var getRandom = function(Task){
+      return function() {
+        return Task.asyncFunction(function(callback){
+          return callback(Task.succeed(Math.getRandom()));
+        });
+      };
+    };
+
+    var addOne = function(a) {
+      return a + 1;
+    };
+
+    function playFile(String){
+      return Task.asyncFunction(function(callback) {
+            
+        //var audio = new Audio(String);
+        var audio = new Audio(String);
+        audio.play();
+
+        return callback(Task.succeed(Utils.Tuple0));
+      });
+    }
 
     return {
     	'addOne': addOne,
-        'getRandom': getRandom(Task)
+        'getRandom': getRandom(Task),
+        'playFile': playFile
     };
 };
 
-Elm.Native.MyModule = {};
-Elm.Native.MyModule.make = make;
-Elm.MyModule = Elm.MyModule || {};
-Elm.MyModule.make = function (_elm) {
+Elm.Native.Music = {};
+Elm.Native.Music.make = make;
+Elm.Music = Elm.Music || {};
+Elm.Music.make = function (_elm) {
    "use strict";
-   _elm.MyModule = _elm.MyModule || {};
-   if (_elm.MyModule.values) return _elm.MyModule.values;
+   _elm.Music = _elm.Music || {};
+   if (_elm.Music.values) return _elm.Music.values;
    var _U = Elm.Native.Utils.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
-   $Native$MyModule = Elm.Native.MyModule.make(_elm),
+   $Native$Music = Elm.Native.Music.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $Task = Elm.Task.make(_elm);
    var _op = {};
-   var getRandom = $Native$MyModule.getRandom;
-   var addOne = $Native$MyModule.addOne;
-   return _elm.MyModule.values = {_op: _op
-                                 ,addOne: addOne
-                                 ,getRandom: getRandom};
+   var getRandom = $Native$Music.getRandom;
+   var addOne = $Native$Music.addOne;
+   var playFile = $Native$Music.playFile;
+   return _elm.Music.values = {_op: _op
+                              ,playFile: playFile
+                              ,addOne: addOne
+                              ,getRandom: getRandom};
 };
 Elm.Main = Elm.Main || {};
 Elm.Main.make = function (_elm) {
@@ -6316,20 +6328,23 @@ Elm.Main.make = function (_elm) {
    $Graphics$Element = Elm.Graphics.Element.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
-   $MyModule = Elm.MyModule.make(_elm),
+   $Music = Elm.Music.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $Task = Elm.Task.make(_elm),
-   $TaskTutorial = Elm.TaskTutorial.make(_elm),
    $Time = Elm.Time.make(_elm);
    var _op = {};
-   var main = $Graphics$Element.show($MyModule.addOne(5));
+   var main = $Graphics$Element.show($Music.addOne(5));
+   var playOn = F2(function (str,sig) {
+      return A2($Signal.sampleOn,
+      sig,
+      $Signal.constant($Music.playFile(str)));
+   });
    var clock = $Time.every($Time.second);
-   var printTasks = A2($Signal.map,$TaskTutorial.print,clock);
    var runner = Elm.Native.Task.make(_elm).performSignal("runner",
-   printTasks);
+   A2(playOn,"test.wav",clock));
    return _elm.Main.values = {_op: _op
                              ,clock: clock
-                             ,printTasks: printTasks
+                             ,playOn: playOn
                              ,main: main};
 };

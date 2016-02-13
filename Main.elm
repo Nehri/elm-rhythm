@@ -5,7 +5,7 @@ import Task exposing (Task)
 import TaskTutorial exposing (print)
 import Time exposing (second, Time)
 
-import MyModule exposing (..)
+import Music exposing (..)
 import Graphics.Element exposing (show)
 
 -- A signal that updates to the current time every second
@@ -14,13 +14,13 @@ clock =
   Time.every second
 
 -- Turn the clock into a signal of tasks
-printTasks : Signal (Task x ())
-printTasks =
-  Signal.map print clock
+playOn : String -> Signal a -> Signal (Task x ())
+playOn str sig =
+  Signal.sampleOn sig (Signal.constant (playFile str))
 
 -- Actually perform all those tasks
 port runner : Signal (Task x ())
 port runner =
-  printTasks
+  playOn "test.wav" clock
 
 main = show <| addOne 5
