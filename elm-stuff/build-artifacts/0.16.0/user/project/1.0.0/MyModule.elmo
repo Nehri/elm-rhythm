@@ -1,0 +1,21 @@
+Elm.MyModule = Elm.MyModule || {};
+Elm.MyModule.make = function (_elm) {
+   "use strict";
+   _elm.MyModule = _elm.MyModule || {};
+   if (_elm.MyModule.values) return _elm.MyModule.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Native$MyModule = Elm.Native.MyModule.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Task = Elm.Task.make(_elm);
+   var _op = {};
+   var getRandom = $Native$MyModule.getRandom;
+   var addOne = $Native$MyModule.addOne;
+   return _elm.MyModule.values = {_op: _op
+                                 ,addOne: addOne
+                                 ,getRandom: getRandom};
+};

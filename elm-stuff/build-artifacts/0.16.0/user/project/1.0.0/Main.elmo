@@ -1,0 +1,28 @@
+Elm.Main = Elm.Main || {};
+Elm.Main.make = function (_elm) {
+   "use strict";
+   _elm.Main = _elm.Main || {};
+   if (_elm.Main.values) return _elm.Main.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Graphics$Element = Elm.Graphics.Element.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $MyModule = Elm.MyModule.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Task = Elm.Task.make(_elm),
+   $TaskTutorial = Elm.TaskTutorial.make(_elm),
+   $Time = Elm.Time.make(_elm);
+   var _op = {};
+   var main = $Graphics$Element.show($MyModule.addOne(5));
+   var clock = $Time.every($Time.second);
+   var printTasks = A2($Signal.map,$TaskTutorial.print,clock);
+   var runner = Elm.Native.Task.make(_elm).performSignal("runner",
+   printTasks);
+   return _elm.Main.values = {_op: _op
+                             ,clock: clock
+                             ,printTasks: printTasks
+                             ,main: main};
+};
