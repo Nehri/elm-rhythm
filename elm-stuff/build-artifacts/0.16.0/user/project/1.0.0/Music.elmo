@@ -1,0 +1,23 @@
+Elm.Music = Elm.Music || {};
+Elm.Music.make = function (_elm) {
+   "use strict";
+   _elm.Music = _elm.Music || {};
+   if (_elm.Music.values) return _elm.Music.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Native$Music = Elm.Native.Music.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Task = Elm.Task.make(_elm);
+   var _op = {};
+   var getRandom = $Native$Music.getRandom;
+   var addOne = $Native$Music.addOne;
+   var playFile = $Native$Music.playFile;
+   return _elm.Music.values = {_op: _op
+                              ,playFile: playFile
+                              ,addOne: addOne
+                              ,getRandom: getRandom};
+};
