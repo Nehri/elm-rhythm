@@ -3,15 +3,15 @@ module Main where
 import Graphics.Element exposing (show)
 import Task exposing (Task)
 import TaskTutorial exposing (print)
-import Time exposing (second, Time)
+import Time exposing (second, minute, Time)
 
-import Music exposing (..)
+import PSound exposing (..)
 import Graphics.Element exposing (show)
 
 -- A signal that updates to the current time every second
 clock : Signal Time
 clock =
-  Time.every second
+  Time.every (second*20)
 
 -- Turn the clock into a signal of tasks
 playOn : String -> Signal a -> Signal (Task x ())
@@ -21,6 +21,6 @@ playOn str sig =
 -- Actually perform all those tasks
 port runner : Signal (Task x ())
 port runner =
-  playOn "test.wav" clock
+  playOn "Electro.wav" (Signal.constant 1)
 
-main = show <| addOne 5
+main = show <| addOne 10

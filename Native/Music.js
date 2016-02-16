@@ -25,8 +25,8 @@ var make = function make(localRuntime) {
     function playFile(String){
       return Task.asyncFunction(function(callback) {
             
-        //var audio = new Audio(String);
         var audio = new Audio(String);
+        audio.loop = true;
         audio.play();
 
         return callback(Task.succeed(Utils.Tuple0));

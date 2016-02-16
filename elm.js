@@ -6277,8 +6277,8 @@ var make = function make(localRuntime) {
     function playFile(String){
       return Task.asyncFunction(function(callback) {
             
-        //var audio = new Audio(String);
         var audio = new Audio(String);
+        audio.loop = true;
         audio.play();
 
         return callback(Task.succeed(Utils.Tuple0));
@@ -6334,15 +6334,15 @@ Elm.Main.make = function (_elm) {
    $Task = Elm.Task.make(_elm),
    $Time = Elm.Time.make(_elm);
    var _op = {};
-   var main = $Graphics$Element.show($Music.addOne(5));
+   var main = $Graphics$Element.show($Music.addOne(10));
    var playOn = F2(function (str,sig) {
       return A2($Signal.sampleOn,
       sig,
       $Signal.constant($Music.playFile(str)));
    });
-   var clock = $Time.every($Time.second);
    var runner = Elm.Native.Task.make(_elm).performSignal("runner",
-   A2(playOn,"test.wav",clock));
+   A2(playOn,"Electro.wav",$Signal.constant(1)));
+   var clock = $Time.every($Time.second * 20);
    return _elm.Main.values = {_op: _op
                              ,clock: clock
                              ,playOn: playOn
