@@ -14,3 +14,6 @@ addOne = Native.Music.addOne
 
 getRandom : Task x Float
 getRandom = Native.Music.getRandom
+
+--getMasterVolume : Float
+--getMasterVolume = Native.Music.getMasterVolume

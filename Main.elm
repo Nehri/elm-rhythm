@@ -5,7 +5,7 @@ import Task exposing (Task)
 import TaskTutorial exposing (print)
 import Time exposing (second, minute, Time)
 
-import PSound exposing (..)
+import Music exposing (..)
 import Graphics.Element exposing (show)
 
 -- A signal that updates to the current time every second
