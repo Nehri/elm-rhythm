@@ -15,7 +15,9 @@ Elm.Main.make = function (_elm) {
    $Task = Elm.Task.make(_elm),
    $Time = Elm.Time.make(_elm);
    var _op = {};
-   var main = $Graphics$Element.show($PSound.addOne(10));
+   var main = $Graphics$Element.show(A2($List.map,
+   F2(function (x,y) {    return x + y;})(10),
+   $PSound.listOfThings));
    var playOn = F2(function (str,sig) {
       return A2($Signal.sampleOn,
       sig,

@@ -6192,64 +6192,6 @@ Elm.Time.make = function (_elm) {
                              ,delay: delay
                              ,since: since};
 };
-Elm.Native.TaskTutorial = {};
-Elm.Native.TaskTutorial.make = function(localRuntime) {
-
-	localRuntime.Native = localRuntime.Native || {};
-	localRuntime.Native.TaskTutorial = localRuntime.Native.TaskTutorial || {};
-	if (localRuntime.Native.TaskTutorial.values)
-	{
-		return localRuntime.Native.TaskTutorial.values;
-	}
-
-	var Task = Elm.Native.Task.make(localRuntime);
-	var Utils = Elm.Native.Utils.make(localRuntime);
-
-
-	function log(string)
-	{
-		return Task.asyncFunction(function(callback) {
-			console.log(string);
-			return callback(Task.succeed(Utils.Tuple0));
-		});
-	}
-
-
-	var getCurrentTime = Task.asyncFunction(function(callback) {
-		return callback(Task.succeed(Date.now()));
-	});
-
-
-	return localRuntime.Native.TaskTutorial.values = {
-		log: log,
-		getCurrentTime: getCurrentTime
-	};
-};
-
-Elm.TaskTutorial = Elm.TaskTutorial || {};
-Elm.TaskTutorial.make = function (_elm) {
-   "use strict";
-   _elm.TaskTutorial = _elm.TaskTutorial || {};
-   if (_elm.TaskTutorial.values) return _elm.TaskTutorial.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Native$TaskTutorial = Elm.Native.TaskTutorial.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm),
-   $Task = Elm.Task.make(_elm),
-   $Time = Elm.Time.make(_elm);
-   var _op = {};
-   var getCurrentTime = $Native$TaskTutorial.getCurrentTime;
-   var print = function (value) {
-      return $Native$TaskTutorial.log($Basics.toString(value));
-   };
-   return _elm.TaskTutorial.values = {_op: _op
-                                     ,print: print
-                                     ,getCurrentTime: getCurrentTime};
-};
 var make = function make(localRuntime) {
     localRuntime.Native = localRuntime.Native || {};
     localRuntime.Native.Http = localRuntime.Native.Http || {};
@@ -6285,37 +6227,57 @@ var make = function make(localRuntime) {
       });
     }
 
+    var listOfThings = fromArray([1,2,3,4,5]);
+
     return {
-    	'addOne': addOne,
+      'addOne': addOne,
         'getRandom': getRandom(Task),
-        'playFile': playFile
+        'playFile': playFile,
+        'listOfThings': listOfThings
     };
 };
 
-Elm.Native.Music = {};
-Elm.Native.Music.make = make;
-Elm.Music = Elm.Music || {};
-Elm.Music.make = function (_elm) {
+Elm.Native.PSound = {};
+Elm.Native.PSound.make = make;
+
+function fromArray(arr) {
+    var out = { ctor:'[]' };
+    for (var i = arr.length; i--; ) {
+        out = Cons(arr[i], out);
+    }
+    return out;
+}
+function Cons(hd,tl) {
+    return {
+        ctor: "::",
+        _0: hd,
+        _1: tl
+    };
+}
+Elm.PSound = Elm.PSound || {};
+Elm.PSound.make = function (_elm) {
    "use strict";
-   _elm.Music = _elm.Music || {};
-   if (_elm.Music.values) return _elm.Music.values;
+   _elm.PSound = _elm.PSound || {};
+   if (_elm.PSound.values) return _elm.PSound.values;
    var _U = Elm.Native.Utils.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
-   $Native$Music = Elm.Native.Music.make(_elm),
+   $Native$PSound = Elm.Native.PSound.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $Task = Elm.Task.make(_elm);
    var _op = {};
-   var getRandom = $Native$Music.getRandom;
-   var addOne = $Native$Music.addOne;
-   var playFile = $Native$Music.playFile;
-   return _elm.Music.values = {_op: _op
-                              ,playFile: playFile
-                              ,addOne: addOne
-                              ,getRandom: getRandom};
+   var listOfThings = $Native$PSound.listOfThings;
+   var getRandom = $Native$PSound.getRandom;
+   var addOne = $Native$PSound.addOne;
+   var playFile = $Native$PSound.playFile;
+   return _elm.PSound.values = {_op: _op
+                               ,playFile: playFile
+                               ,addOne: addOne
+                               ,getRandom: getRandom
+                               ,listOfThings: listOfThings};
 };
 Elm.Main = Elm.Main || {};
 Elm.Main.make = function (_elm) {
@@ -6328,17 +6290,19 @@ Elm.Main.make = function (_elm) {
    $Graphics$Element = Elm.Graphics.Element.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
-   $Music = Elm.Music.make(_elm),
+   $PSound = Elm.PSound.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $Task = Elm.Task.make(_elm),
    $Time = Elm.Time.make(_elm);
    var _op = {};
-   var main = $Graphics$Element.show($Music.addOne(10));
+   var main = $Graphics$Element.show(A2($List.map,
+   F2(function (x,y) {    return x + y;})(10),
+   $PSound.listOfThings));
    var playOn = F2(function (str,sig) {
       return A2($Signal.sampleOn,
       sig,
-      $Signal.constant($Music.playFile(str)));
+      $Signal.constant($PSound.playFile(str)));
    });
    var runner = Elm.Native.Task.make(_elm).performSignal("runner",
    A2(playOn,"Electro.wav",$Signal.constant(1)));

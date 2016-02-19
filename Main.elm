@@ -2,10 +2,9 @@ module Main where
 
 import Graphics.Element exposing (show)
 import Task exposing (Task)
-import TaskTutorial exposing (print)
 import Time exposing (second, minute, Time)
 
-import Music exposing (..)
+import PSound exposing (..)
 import Graphics.Element exposing (show)
 
 -- A signal that updates to the current time every second
@@ -13,7 +12,7 @@ clock : Signal Time
 clock =
   Time.every (second*20)
 
--- Turn the clock into a signal of tasks
+-- Play the given sound file on the given signal
 playOn : String -> Signal a -> Signal (Task x ())
 playOn str sig =
   Signal.sampleOn sig (Signal.constant (playFile str))
@@ -23,4 +22,4 @@ port runner : Signal (Task x ())
 port runner =
   playOn "Electro.wav" (Signal.constant 1)
 
-main = show <| addOne 10
+main = show (List.map ((+) 10) listOfThings)
