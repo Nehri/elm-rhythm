@@ -7,7 +7,7 @@ function preload() {
  mySound = loadSound('Electro.wav');
 
 // initializer message
-lmRuntime.ports.ampharos.send(
+elmRuntime.ports.ampharos.send(
     { amplitude: 0.0 }
     );
 }
