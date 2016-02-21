@@ -15,7 +15,7 @@ clock =
 -- Play the given sound file on the given signal
 playOn : String -> Signal a -> Signal (Task x ())
 playOn str sig =
-  Signal.sampleOn sig (Signal.constant (playFile str))
+  Signal.sampleOn sig (Signal.constant (playFile))
 
 -- Actually perform all those tasks
 port runner : Signal (Task x ())

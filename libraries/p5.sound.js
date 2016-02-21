@@ -1,46 +1,11 @@
-var make = function make(localRuntime) {
-    localRuntime.Native = localRuntime.Native || {};
-    localRuntime.Native.Http = localRuntime.Native.Http || {};
-
-    if (localRuntime.Native.Http.values) {
-        return localRuntime.Native.Http.values;
-    }
-
-    var Task = Elm.Native.Task.make(localRuntime);
-    var Utils = Elm.Native.Utils.make(localRuntime);
-    var Signal = Elm.Native.Signal.make(localRuntime);
-
-    var getRandom = function(Task){
-      return function() {
-        return Task.asyncFunction(function(callback){
-          return callback(Task.succeed(Math.getRandom()));
-        });
-      };
-    };
-
-    var addOne = function(a) {
-      return a + 1;
-    };
-
-    function playFile(String){
-      return Task.asyncFunction(function(callback) {
-            
-        var audio = new Audio(String);
-        audio.loop = true;
-        audio.play();
-
-        return callback(Task.succeed(Utils.Tuple0));
-      });
-    }
-
-    /*! p5.sound.js v0.3.0 2016-01-31 */
+/*! p5.sound.js v0.3.0 2016-01-31 */
 (function (root, factory) {
-  /*if (typeof define === 'function' && define.amd)
+  if (typeof define === 'function' && define.amd)
     define('p5.sound', ['p5'], function (p5) { (factory(p5));});
   else if (typeof exports === 'object')
     factory(require('../p5'));
   else
-    factory(root['p5']);*/
+    factory(root['p5']);
 }(this, function (p5) {
   /**
  *  p5.sound extends p5 with <a href="http://caniuse.com/audio-api"
@@ -363,8 +328,6 @@ master = function () {
    * @return {Number} Master amplitude (volume) for sound in this sketch.
    *                  Should be between 0.0 (silence) and 1.0.
    */
-   /*~~~~~*/
-  
   p5.prototype.getMasterVolume = function () {
     return p5sound.output.gain.value;
   };
@@ -9061,22 +9024,11 @@ gain = function () {
     this.output = undefined;
     this.input = undefined;
   };
-  }(master, sndcore);
-  var src_app;
-  src_app = function () {
-    'use strict';
-    var p5SOUND = sndcore;
-    return p5SOUND;
-  }(sndcore, master, helpers, errorHandler, panner, soundfile, amplitude, fft, signal, oscillator, env, pulse, noise, audioin, filter, delay, reverb, metro, looper, soundRecorder, peakdetect, gain);
-  }));
-
-
-    return {
-        'addOne': addOne,
-        'getRandom': getRandom(Task),
-        'playFile': playFile,
-    };
-};
-
-Elm.Native.Music = {};
-Elm.Native.Music.make = make;
+}(master, sndcore);
+var src_app;
+src_app = function () {
+  'use strict';
+  var p5SOUND = sndcore;
+  return p5SOUND;
+}(sndcore, master, helpers, errorHandler, panner, soundfile, amplitude, fft, signal, oscillator, env, pulse, noise, audioin, filter, delay, reverb, metro, looper, soundRecorder, peakdetect, gain);
+}));

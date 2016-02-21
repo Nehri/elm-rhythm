@@ -1,8 +1,10 @@
+var mySound;
+
 function preload() {
   mySound = loadSound('Electro.wav');
 }
 
-var make = function make(localRuntime) {
+var make = function make(localRuntime, mySound) {
     localRuntime.Native = localRuntime.Native || {};
     localRuntime.Native.Http = localRuntime.Native.Http || {};
 
@@ -27,12 +29,15 @@ var make = function make(localRuntime) {
       return a + 1;
     };
 
-    function playFile(String){
+    function playFile(mySound){
       return Task.asyncFunction(function(callback) {
             
-        var audio = new Audio(String);
+        /*var audio = new Audio(String);
         audio.loop = true;
-        audio.play();
+        audio.play();*/
+
+        console.log(mySound.duration());
+        mySound.play();
 
         return callback(Task.succeed(Utils.Tuple0));
       });
@@ -40,15 +45,12 @@ var make = function make(localRuntime) {
 
     var listOfThings = List.fromArray([1,2,3,4,5]);
 
-    var duration = mySound.duration();
-
     
     return {
       'addOne': addOne,
       'getRandom': getRandom(Task),
-      'playFile': playFile,
+      'playFile': playFile(mySound),
       'listOfThings': listOfThings
-      ''
     };
 };
 
