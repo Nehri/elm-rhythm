@@ -9146,7 +9146,6 @@ Elm.Main.make = function (_elm) {
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
-   $Task = Elm.Task.make(_elm),
    $Time = Elm.Time.make(_elm);
    var _op = {};
    var ampharos = Elm.Native.Port.make(_elm).inboundSignal("ampharos",
@@ -9157,24 +9156,13 @@ Elm.Main.make = function (_elm) {
                                                          v.amplitude)} : _U.badPort("an object with fields `amplitude`",
       v);
    });
-   var listOfThings = $Native$PSound.listOfThings;
-   var getRandom = $Native$PSound.getRandom;
-   var addOne = $Native$PSound.addOne;
-   var playFile = $Native$PSound.playFile;
    var objectToValue = function (sound) {
       return $Json$Encode.object(_U.list([{ctor: "_Tuple2"
                                           ,_0: "amplitude"
                                           ,_1: $Json$Encode.$float(sound.amplitude)}]));
    };
    var silentMusic = {amplitude: 0.0};
-   var main = $Graphics$Element.show(A2($List.map,
-   F2(function (x,y) {    return x + y;})(10),
-   listOfThings));
-   var playOn = F2(function (str,sig) {
-      return A2($Signal.sampleOn,sig,$Signal.constant(playFile));
-   });
-   var runner = Elm.Native.Task.make(_elm).performSignal("runner",
-   A2(playOn,"Electro.wav",$Signal.constant(1)));
+   var main = A2($Signal.map,$Graphics$Element.show,ampharos);
    var clock = $Time.every($Time.second * 20);
    var MusicObject = function (a) {    return {amplitude: a};};
    var floatToObject = function () {
@@ -9191,13 +9179,8 @@ Elm.Main.make = function (_elm) {
    return _elm.Main.values = {_op: _op
                              ,MusicObject: MusicObject
                              ,clock: clock
-                             ,playOn: playOn
                              ,main: main
                              ,silentMusic: silentMusic
                              ,objectToValue: objectToValue
-                             ,floatToObject: floatToObject
-                             ,playFile: playFile
-                             ,addOne: addOne
-                             ,getRandom: getRandom
-                             ,listOfThings: listOfThings};
+                             ,floatToObject: floatToObject};
 };

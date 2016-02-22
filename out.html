@@ -1,10 +1,10 @@
 <html>
 
   <head>
-    <title>Sketch-n-Sketch</title>
+    <title>Rhythm</title>
     <script language="javascript" type="text/javascript" src="libraries/p5.js"></script>
     <script language="javascript" src="libraries/p5.sound.js"></script>
-    <script type="text/javascript" src="out.js"></script>
+    <script type="text/javascript" src="elm.js"></script>
     <!-- script type="text/javascript" src="rhythm.js"></script>-->
     <meta charset="UTF-8">
     <style type="text/css" media="screen">
@@ -22,53 +22,53 @@
         <div id="main"></div>
     </body>
 
-    <!-- script>
-      // Scripts below will load these up.
-      window.initialPortValues = {};
-      window.initializers      = [];
-    </script> -->
     <script>
       // Start up Elm
       var elmRuntime = Elm.fullscreen(Elm.Main, {"ampharos" : {"amplitude" : 0.0}});
 
       var mySound;
       var amp;
-
-
+      var fft;
 
       function preload() {
        mySound = loadSound('Electro.wav');
-       console.log("loaded sound");
+       amp = new p5.Amplitude();
+       fft = new p5.FFT();
       }
 
       function setup() {
         //start playing the song
         mySound.setVolume(1);
         mySound.loop();
-        
-        console.log("played sound");
-        amp = new p5.Amplitude();
-        setInterval(sendAmp, 16);
-        
+        setInterval(sendData, 16);
       }
 
-      //sends the current amplitude
-      function sendAmp() {
+      //sends the energy from low medium and high bands
+      function sendData() {
 
-        val = amp.getLevel();
-        elmRuntime.ports.ampharos.send(
-          { amplitude : val }
-          );
-        console.log(val);
+        fft.analyze();
+
+        var data = {
+          amplitude : amp.getLevel(),
+          low_energy : fft.getEnergy(20,512),
+          med_energy : fft.getEnergy(512,2048),
+          high_energy : fft.getEnergy(2048,20000)
+        }
+        console.log(data);
+
+        elmRuntime.ports.ampharos.send(data);
       }
-      // initializer message
-      elmRuntime.ports.ampharos.send(
-          { amplitude: 0.0 }
-          );
-      // Call the initializers
-      /*for (var i in window.initializers) {
-        var intializer = window.initializers[i];
-        intializer(elmRuntime);
-      }*/
+
+      // initialize the port
+      var init_data = {
+          amplitude : 0.0,
+          low_energy : 0.0,
+          med_energy : 0.0,
+          high_energy : 0.0,
+        }
+
+      elmRuntime.ports.ampharos.send(init_data);
+
+
     </script>
 </html>
