@@ -4,8 +4,8 @@
     <title>Sketch-n-Sketch</title>
     <script language="javascript" type="text/javascript" src="libraries/p5.js"></script>
     <script language="javascript" src="libraries/p5.sound.js"></script>
-    <script type="text/javascript" src="rhythm.js"></script>
     <script type="text/javascript" src="out.js"></script>
+    <!-- script type="text/javascript" src="rhythm.js"></script>-->
     <meta charset="UTF-8">
     <style type="text/css" media="screen">
         #editor {
@@ -22,16 +22,53 @@
         <div id="main"></div>
     </body>
 
-    <script>
+    <!-- script>
       // Scripts below will load these up.
-    </script>
+      window.initialPortValues = {};
+      window.initializers      = [];
+    </script> -->
     <script>
       // Start up Elm
-      var elmRuntime = Elm.fullscreen(Elm.Main, window.initialPortValues);
+      var elmRuntime = Elm.fullscreen(Elm.Main, {"ampharos" : {"amplitude" : 1.0}});
+
+      var mySound;
+      var amp;
+
+
+
+      function preload() {
+       mySound = loadSound('Electro.wav');
+       console.log("loaded sound");
+      }
+
+      function setup() {
+        //start playing the song
+        mySound.setVolume(1);
+        mySound.loop();
+        
+        console.log("played sound");
+        amp = new p5.Amplitude();
+        setInterval(sendAmp, 16);
+        
+      }
+
+      //sends the current amplitude
+      function sendAmp() {
+
+        val = amp.getLevel();
+        elmRuntime.ports.ampharos.send(
+          { amplitude : val }
+          );
+        console.log(val);
+      }
+      // initializer message
+      elmRuntime.ports.ampharos.send(
+          { amplitude: 0.0 }
+          );
       // Call the initializers
-      for (var i in window.initializers) {
+      /*for (var i in window.initializers) {
         var intializer = window.initializers[i];
         intializer(elmRuntime);
-      }
+      }*/
     </script>
 </html>

@@ -28,7 +28,7 @@ clock =
 --port runner =
   --playOn "Electro.wav" (Signal.constant 1)
 
-main = show (List.map ((+) 10) listOfThings)
+main = Signal.map show ampharos
 
 silentMusic : MusicObject
 silentMusic =
@@ -47,21 +47,6 @@ floatToObject =
             Ok { silentMusic | amplitude = sound.amplitude
             }
         )
-
---plays a sound file
-playFile : Task x ()
-playFile = Native.PSound.playFile
-
--- Native tutorial functions
-addOne : Int -> Int
-addOne = Native.PSound.addOne
-
-getRandom : Task x Float
-getRandom = Native.PSound.getRandom
-
---see if I can figure out how lists work
-listOfThings : List a
-listOfThings = Native.PSound.listOfThings
 
 --Port that accepts current sound info from Javascript
 port ampharos : Signal MusicObject
