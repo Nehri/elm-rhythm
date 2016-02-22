@@ -15,7 +15,10 @@ import Window
 import Color
 
 type alias MusicObject = 
-    { amplitude : Float
+    { amplitude  : Float,
+      low_energy : Float,
+      mid_energy : Float,
+      high_energy: Float
     }
 
 -- A signal that updates to the current time every second
@@ -39,29 +42,33 @@ drawCircle color r =
 
 showShape : Color.Color -> Float -> Element
 showShape color r = 
-  collage 1000 1000 [(move (500,0) (drawCircle color r))]
+  collage 2500 1000 [(move (0,0) (drawCircle color r))]
 
 --main = Signal.map show (Signal.sampleOn clock (Signal.map (\a -> a.amplitude) ampharos))
 
 silentMusic : MusicObject
 silentMusic =
-    { amplitude = 0.0 }
+    { amplitude   = 0.0, 
+      low_energy  = 0.0,
+      mid_energy  = 0.0,
+      high_energy = 0.0
+     }
 
-objectToValue : MusicObject -> Encode.Value
-objectToValue sound = 
-    Encode.object <|
-        [ ("amplitude", Encode.float sound.amplitude)]
+--objectToValue : MusicObject -> Encode.Value
+--objectToValue sound = 
+    --Encode.object <|
+        --[ ("amplitude", Encode.float sound.amplitude)]
 
-floatToObject : Decoder MusicObject
-floatToObject = 
-    let soundDecoder = Decode.object1 MusicObject ("amplitude" := Decode.float) in
-    Decode.customDecoder soundDecoder
-        (\sound ->
-            Ok { silentMusic | amplitude = sound.amplitude
-            }
-        )
+--floatToObject : Decoder MusicObject
+--floatToObject = 
+    --let soundDecoder = Decode.object1 MusicObject ("amplitude" := Decode.float) in
+    --Decode.customDecoder soundDecoder
+        --(\sound ->
+        --    Ok { silentMusic | amplitude = sound.amplitude
+        --    }
+        --)
 
 --Port that accepts current sound info from Javascript
 port ampharos : Signal MusicObject
 
-main = Signal.sampleOn (Signal.map (\a -> a.amplitude) ampharos) (Signal.map (\a -> showShape Color.black (a.amplitude * 500)) ampharos)
+main = Signal.sampleOn (Signal.map (\a -> a.amplitude) ampharos) (Signal.map (\a -> showShape Color.black (a.amplitude * 700)) ampharos)

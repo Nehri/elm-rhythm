@@ -9,8 +9,6 @@ Elm.Main.make = function (_elm) {
    $Debug = Elm.Debug.make(_elm),
    $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
    $Graphics$Element = Elm.Graphics.Element.make(_elm),
-   $Json$Decode = Elm.Json.Decode.make(_elm),
-   $Json$Encode = Elm.Json.Encode.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
@@ -20,17 +18,21 @@ Elm.Main.make = function (_elm) {
    var ampharos = Elm.Native.Port.make(_elm).inboundSignal("ampharos",
    "Main.MusicObject",
    function (v) {
-      return typeof v === "object" && "amplitude" in v ? {_: {}
-                                                         ,amplitude: typeof v.amplitude === "number" ? v.amplitude : _U.badPort("a number",
-                                                         v.amplitude)} : _U.badPort("an object with fields `amplitude`",
+      return typeof v === "object" && "amplitude" in v && "low_energy" in v && "mid_energy" in v && "high_energy" in v ? {_: {}
+                                                                                                                         ,amplitude: typeof v.amplitude === "number" ? v.amplitude : _U.badPort("a number",
+                                                                                                                         v.amplitude)
+                                                                                                                         ,low_energy: typeof v.low_energy === "number" ? v.low_energy : _U.badPort("a number",
+                                                                                                                         v.low_energy)
+                                                                                                                         ,mid_energy: typeof v.mid_energy === "number" ? v.mid_energy : _U.badPort("a number",
+                                                                                                                         v.mid_energy)
+                                                                                                                         ,high_energy: typeof v.high_energy === "number" ? v.high_energy : _U.badPort("a number",
+                                                                                                                         v.high_energy)} : _U.badPort("an object with fields `amplitude`, `low_energy`, `mid_energy`, `high_energy`",
       v);
    });
-   var objectToValue = function (sound) {
-      return $Json$Encode.object(_U.list([{ctor: "_Tuple2"
-                                          ,_0: "amplitude"
-                                          ,_1: $Json$Encode.$float(sound.amplitude)}]));
-   };
-   var silentMusic = {amplitude: 0.0};
+   var silentMusic = {amplitude: 0.0
+                     ,low_energy: 0.0
+                     ,mid_energy: 0.0
+                     ,high_energy: 0.0};
    var drawCircle = F2(function (color,r) {
       return A2($Graphics$Collage.filled,
       $Color.black,
@@ -38,39 +40,31 @@ Elm.Main.make = function (_elm) {
    });
    var showShape = F2(function (color,r) {
       return A3($Graphics$Collage.collage,
-      1000,
+      2500,
       1000,
       _U.list([A2($Graphics$Collage.move,
-      {ctor: "_Tuple2",_0: 500,_1: 0},
+      {ctor: "_Tuple2",_0: 0,_1: 0},
       A2(drawCircle,color,r))]));
    });
    var main = A2($Signal.sampleOn,
    A2($Signal.map,function (a) {    return a.amplitude;},ampharos),
    A2($Signal.map,
    function (a) {
-      return A2(showShape,$Color.black,a.amplitude * 500);
+      return A2(showShape,$Color.black,a.amplitude * 700);
    },
    ampharos));
    var clock = $Time.every($Time.millisecond);
-   var MusicObject = function (a) {    return {amplitude: a};};
-   var floatToObject = function () {
-      var soundDecoder = A2($Json$Decode.object1,
-      MusicObject,
-      A2($Json$Decode._op[":="],"amplitude",$Json$Decode.$float));
-      return A2($Json$Decode.customDecoder,
-      soundDecoder,
-      function (sound) {
-         return $Result.Ok(_U.update(silentMusic,
-         {amplitude: sound.amplitude}));
-      });
-   }();
+   var MusicObject = F4(function (a,b,c,d) {
+      return {amplitude: a
+             ,low_energy: b
+             ,mid_energy: c
+             ,high_energy: d};
+   });
    return _elm.Main.values = {_op: _op
                              ,MusicObject: MusicObject
                              ,clock: clock
                              ,drawCircle: drawCircle
                              ,showShape: showShape
                              ,silentMusic: silentMusic
-                             ,objectToValue: objectToValue
-                             ,floatToObject: floatToObject
                              ,main: main};
 };
