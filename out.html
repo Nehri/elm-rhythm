@@ -24,7 +24,18 @@
 
     <script>
       // Start up Elm
-      var elmRuntime = Elm.fullscreen(Elm.Main, {"ampharos" : {"amplitude" : 0.0, "low_energy" : 0.0, "mid_energy" : 0.0, "high_energy" : 0.0}});
+
+      // initialize the port
+      var init_data = {
+        amplitude : 0.0,
+        bass_energy : 0.0,
+        low_energy : 0.0,
+        mid_energy : 0.0,
+        high_energy : 0.0,
+        treble_energy : 0.0,
+        }
+      var elmRuntime = Elm.fullscreen(Elm.Main, {"ampharos" : init_data});
+      elmRuntime.ports.ampharos.send(init_data);
 
       var mySound;
       var amp;
@@ -34,7 +45,6 @@
        mySound = loadSound('snow_wanderer.mp3');
        amp = new p5.Amplitude();
        fft = new p5.FFT();
-
        fft.analyze();
       }
 
@@ -50,24 +60,20 @@
 
         var data = {
           amplitude : amp.getLevel(),
-          low_energy : fft.getEnergy(20,512),
-          mid_energy : fft.getEnergy(512,2048),
-          high_energy : fft.getEnergy(2048,20000)
+          bass_energy : fft.getEnergy("bass"),
+          low_energy : fft.getEnergy("lowMid"),
+          mid_energy : fft.getEnergy("mid"),
+          high_energy : fft.getEnergy("highMid"),
+          treble_energy : fft.getEnergy("treble"),
         }
         //console.log(data);
 
         elmRuntime.ports.ampharos.send(data);
       }
 
-      // initialize the port
-      var init_data = {
-          amplitude : 0.0,
-          low_energy : 0.0,
-          mid_energy : 0.0,
-          high_energy : 0.0,
-        }
+      
 
-      elmRuntime.ports.ampharos.send(init_data);
+      
 
 
     </script>
