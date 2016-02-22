@@ -1,0 +1,74 @@
+<html>
+
+  <head>
+    <title>Rhythm</title>
+    <script language="javascript" type="text/javascript" src="libraries/p5.js"></script>
+    <script language="javascript" src="libraries/p5.sound.js"></script>
+    <script type="text/javascript" src="out.js"></script>
+    <!-- script type="text/javascript" src="rhythm.js"></script>-->
+    <meta charset="UTF-8">
+    <style type="text/css" media="screen">
+        #editor {
+            position: relative;
+            /*top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;*/
+        }
+    </style>
+    </head>
+
+    <body style="margin: 0 0 0 0;">
+        <div id="main"></div>
+    </body>
+
+    <script>
+      // Start up Elm
+      var elmRuntime = Elm.fullscreen(Elm.Main, {"ampharos" : {"amplitude" : 0.0, "low_energy" : 0.0, "mid_energy" : 0.0, "high_energy" : 0.0}});
+
+      var mySound;
+      var amp;
+      var fft;
+
+      function preload() {
+       mySound = loadSound('soundfile.mp3');
+       amp = new p5.Amplitude();
+       fft = new p5.FFT();
+
+       fft.analyze();
+      }
+
+      function setup() {
+        //start playing the song
+        mySound.setVolume(1);
+        mySound.loop();
+        setInterval(sendData, 16);
+      }
+
+      //sends the energy from low medium and high bands
+      function sendData() {
+
+        var data = {
+          amplitude : amp.getLevel(),
+          low_energy : fft.getEnergy(20,512),
+          mid_energy : fft.getEnergy(512,2048),
+          high_energy : fft.getEnergy(2048,20000)
+        }
+        //console.log(data);
+
+        elmRuntime.ports.ampharos.send(data);
+      }
+
+      // initialize the port
+      var init_data = {
+          amplitude : 0.0,
+          low_energy : 0.0,
+          mid_energy : 0.0,
+          high_energy : 0.0,
+        }
+
+      elmRuntime.ports.ampharos.send(init_data);
+
+
+    </script>
+</html>
