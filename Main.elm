@@ -2,12 +2,17 @@ module Main where
 
 import Graphics.Element exposing (show)
 import Task exposing (Task)
-import Time exposing (second, minute, Time)
+import Time exposing (millisecond, second, minute, Time)
 
-import Graphics.Element exposing (show)
+import Graphics.Element exposing (show, flow, Element)
+import Graphics.Collage exposing (Form, collage, toForm, filled, circle, move)
 
 import Json.Encode as Encode
 import Json.Decode as Decode exposing ((:=), Decoder)
+
+import Signal
+import Window
+import Color
 
 type alias MusicObject = 
     { amplitude : Float
@@ -16,7 +21,7 @@ type alias MusicObject =
 -- A signal that updates to the current time every second
 clock : Signal Time
 clock =
-  Time.every (second*20)
+  Time.every millisecond
 
 -- Play the given sound file on the given signal
 --playOn : String -> Signal a -> Signal (Task x ())
@@ -26,9 +31,17 @@ clock =
 -- Actually perform all those tasks
 --port runner : Signal (Task x ())
 --port runner =
-  --playOn "Electro.wav" (Signal.constant 1)
+  --playOn "Electro.wav" (Signal.constant 1) 
 
-main = Signal.map show ampharos
+drawCircle : Color.Color -> Float -> Form
+drawCircle color r = 
+  filled Color.black (circle r)
+
+showShape : Color.Color -> Float -> Element
+showShape color r = 
+  collage 1000 1000 [(move (500,0) (drawCircle color r))]
+
+--main = Signal.map show (Signal.sampleOn clock (Signal.map (\a -> a.amplitude) ampharos))
 
 silentMusic : MusicObject
 silentMusic =
@@ -50,3 +63,5 @@ floatToObject =
 
 --Port that accepts current sound info from Javascript
 port ampharos : Signal MusicObject
+
+main = Signal.sampleOn (Signal.map (\a -> a.amplitude) ampharos) (Signal.map (\a -> showShape Color.black (a.amplitude * 500)) ampharos)

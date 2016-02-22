@@ -5,7 +5,9 @@ Elm.Main.make = function (_elm) {
    if (_elm.Main.values) return _elm.Main.values;
    var _U = Elm.Native.Utils.make(_elm),
    $Basics = Elm.Basics.make(_elm),
+   $Color = Elm.Color.make(_elm),
    $Debug = Elm.Debug.make(_elm),
+   $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
    $Graphics$Element = Elm.Graphics.Element.make(_elm),
    $Json$Decode = Elm.Json.Decode.make(_elm),
    $Json$Encode = Elm.Json.Encode.make(_elm),
@@ -29,8 +31,27 @@ Elm.Main.make = function (_elm) {
                                           ,_1: $Json$Encode.$float(sound.amplitude)}]));
    };
    var silentMusic = {amplitude: 0.0};
-   var main = A2($Signal.map,$Graphics$Element.show,ampharos);
-   var clock = $Time.every($Time.second * 20);
+   var drawCircle = F2(function (color,r) {
+      return A2($Graphics$Collage.filled,
+      $Color.black,
+      $Graphics$Collage.circle(r));
+   });
+   var showShape = F2(function (color,r) {
+      return A3($Graphics$Collage.collage,
+      1000,
+      1000,
+      _U.list([A2($Graphics$Collage.move,
+      {ctor: "_Tuple2",_0: 500,_1: 0},
+      A2(drawCircle,color,r))]));
+   });
+   var main = A2($Signal.sampleOn,
+   A2($Signal.map,function (a) {    return a.amplitude;},ampharos),
+   A2($Signal.map,
+   function (a) {
+      return A2(showShape,$Color.black,a.amplitude * 500);
+   },
+   ampharos));
+   var clock = $Time.every($Time.millisecond);
    var MusicObject = function (a) {    return {amplitude: a};};
    var floatToObject = function () {
       var soundDecoder = A2($Json$Decode.object1,
@@ -46,8 +67,10 @@ Elm.Main.make = function (_elm) {
    return _elm.Main.values = {_op: _op
                              ,MusicObject: MusicObject
                              ,clock: clock
-                             ,main: main
+                             ,drawCircle: drawCircle
+                             ,showShape: showShape
                              ,silentMusic: silentMusic
                              ,objectToValue: objectToValue
-                             ,floatToObject: floatToObject};
+                             ,floatToObject: floatToObject
+                             ,main: main};
 };
