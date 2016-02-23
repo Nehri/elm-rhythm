@@ -35,11 +35,11 @@ drawCircle color r =
 view : (Int, Int) -> MusicObject -> Element
 view (w,h) obj =
   collage w h [
-    ( moveX (toFloat (-1*(w//3))) (drawCircle Color.purple obj.bass_energy) ),
-    ( moveX (toFloat (-1*(w//6))) (drawCircle Color.blue   obj.low_energy) ),
-    ( moveX 0.0                   (drawCircle Color.green  obj.mid_energy) ),
-    ( moveX (toFloat (w//6))      (drawCircle Color.yellow obj.high_energy) ),
-    ( moveX (toFloat (w//3))      (drawCircle Color.red    obj.treble_energy) )
+    ( moveX (toFloat (-1*(w//3))) (drawCircle Color.rgb(0,52,48) obj.bass_energy) ),
+    ( moveX (toFloat (-1*(w//6))) (drawCircle Color.rgb(13,78,73)   obj.low_energy) ),
+    ( moveX 0.0                   (drawCircle Color.rgb(35,104,99)  obj.mid_energy) ),
+    ( moveX (toFloat (w//6))      (drawCircle Color.rgb(65,131,126) obj.high_energy) ),
+    ( moveX (toFloat (w//3))      (drawCircle Color.rgb(105,157,153)    obj.treble_energy) )
     ]
 
 --objectToValue : MusicObject -> Encode.Value

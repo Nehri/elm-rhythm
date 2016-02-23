@@ -42,10 +42,9 @@
       var fft;
 
       function preload() {
-       mySound = loadSound('snow_wanderer.mp3');
+       mySound = loadSound('soundfile.mp3');
        amp = new p5.Amplitude();
        fft = new p5.FFT();
-       fft.analyze();
       }
 
       function setup() {
@@ -58,6 +57,7 @@
       //sends the energy from low medium and high bands
       function sendData() {
 
+        fft.analyze();
         var data = {
           amplitude : amp.getLevel(),
           bass_energy : fft.getEnergy("bass"),
