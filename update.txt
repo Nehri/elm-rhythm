@@ -1,0 +1,43 @@
+Instructions:
+
+If using Mac:
+	Run the HTML directly:
+		1) Change into the src/ directory.
+		2) Open the out.html file in Firefox.
+		This will play the default soundfile supplied in our repository.
+
+	Add your own mp3 sound file:
+		1) Paste an mp3 file into the repository's root (the folder with update.txt)
+		2) Run 'python importSound.py' in the terminal.
+		3) Open the out.html file as above.
+
+If using Linux:
+	By script:
+		1) Stay in the root directory (same folder as update.txt)
+		2) Enter '.\run.sh' in the terminal.
+		An instance of Firefox will be opened automatically with our html page.
+
+	Adding your own sound mp3 file:
+		1) Paste an mp3 file in the directory's root (same folder as update.txt).
+		2) Run '.\run.sh' in the terminal.
+		The default sound file will be overwritten and replaced with your mp3.
+		Then, an instance of Firefox will be opened automatically.
+
+
+
+Progress:
+	We spent most of our time trying to get elm to interact with javascript so that we could use existing libraries (we are using p5.sound) to interact with and analyze sound files, as elm is currently lacking those abilities. We first tried to do this by writing Native elm in javascript, but due to difficulties with asynchronous functions in the music parsing javascript library we are using, we had to switch to using Ports.
+
+	Currently we have set up one port in elm that listens for incoming sound data from javascript. We then run javascript (found in out.html) that plays the sound file and sends amplitude and energy data to elm every 66 milliseconds so that we have enough real time data for 20fps.
+
+	For now, our visualization of the sound is 5 circles, each of which corresponds to a frequency range, with lower frequencies on the left and higher frequencies on the right. Each circle's radius is derived from the energy in its corresponding frequency range, so circles will pulse with the music. This is mostly a proof of concept that we can get sound data to elm and then display something with it, but the ones on the left are still quite fun to watch as they pulse with the beat of the song.
+
+
+Future Plans:
+	Now that we have gotten the port infrastructure created, we should be able to make progress much more quickly. We would like to proceed with our goal of making a rhythm game out of the sound data we are sending to elm. To do so we will need to add a player interface, do more signal processing, and deal with timing and lag issues.
+
+	For the player interface, we will mark key sound events (likely peaks in amplitude or energy) and have the player press keyboard keys in rhythm with those events. To do so we will create a infrastructure that keeps track of  which times keys are pressed, and then assigns points if the player pressed the key within a certain range of the event.
+
+	Most of the signal processing needed can be done by making further use of javascript libraries, but if we are feeling ambitious and lag is not an issue, we could try to do some in elm. This would be a stretch goal, and if memory becomes an issue may be impossible.
+
+	While elm can mostly keep up with the real time sound data we are sending it, we have noticed some lag. To deal with this we will put a time gap between analysis and display, and send timestamps with the data so that if there is lag we can still attempt to synchronize elm's events with the sound. As lag becomes a larger problem as the complexity of our program increases, we will also filter data at the javascript level so that elm does not have to process data that would be discarded anyways.
