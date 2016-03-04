@@ -9235,7 +9235,7 @@ Elm.Main.make = function (_elm) {
    $Time = Elm.Time.make(_elm);
    var _op = {};
    var ampharos = Elm.Native.Port.make(_elm).inboundSignal("ampharos",
-   "Main.MusicObject",
+   "Main.RealTimeData",
    function (v) {
       return typeof v === "object" && "amplitude" in v && "low_energy" in v && "mid_energy" in v && "high_energy" in v ? {_: {}
                                                                                                                          ,amplitude: typeof v.amplitude === "number" ? v.amplitude : _U.badPort("a number",
@@ -9273,14 +9273,14 @@ Elm.Main.make = function (_elm) {
    },
    ampharos));
    var clock = $Time.every($Time.millisecond);
-   var MusicObject = F4(function (a,b,c,d) {
+   var RealTimeData = F4(function (a,b,c,d) {
       return {amplitude: a
              ,low_energy: b
              ,mid_energy: c
              ,high_energy: d};
    });
    return _elm.Main.values = {_op: _op
-                             ,MusicObject: MusicObject
+                             ,RealTimeData: RealTimeData
                              ,clock: clock
                              ,drawCircle: drawCircle
                              ,showShape: showShape
