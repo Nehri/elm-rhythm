@@ -9236,7 +9236,7 @@ Elm.Main.make = function (_elm) {
    $Window = Elm.Window.make(_elm);
    var _op = {};
    var ampharos = Elm.Native.Port.make(_elm).inboundSignal("ampharos",
-   "Main.MusicObject",
+   "Main.RealTimeData",
    function (v) {
       return typeof v === "object" && "amplitude" in v && "bass_energy" in v && "low_energy" in v && "mid_energy" in v && "high_energy" in v && "treble_energy" in v ? {_: {}
                                                                                                                                                                        ,amplitude: typeof v.amplitude === "number" ? v.amplitude : _U.badPort("a number",
@@ -9264,31 +9264,76 @@ Elm.Main.make = function (_elm) {
       color,
       $Graphics$Collage.circle(r));
    });
-   var view = F2(function (_p0,obj) {
+   var clock = $Time.every($Time.millisecond);
+   var linePosition = function (_p0) {
       var _p1 = _p0;
-      var _p2 = _p1._0;
+      var _p3 = _p1._0;
+      var _p2 = _p1._1;
+      return A2($Graphics$Collage.traced,
+      $Graphics$Collage.defaultLine,
+      $Graphics$Collage.path(_U.list([{ctor: "_Tuple2"
+                                      ,_0: 0 - _p3
+                                      ,_1: _p2}
+                                     ,{ctor: "_Tuple2",_0: _p3,_1: _p2}])));
+   };
+   var view = F3(function (_p5,obj,_p4) {
+      var _p6 = _p5;
+      var _p9 = _p6._0;
+      var _p8 = _p6._1;
+      var _p7 = _p4;
       return A3($Graphics$Collage.collage,
-      _p2,
-      _p1._1,
-      _U.list([A2($Graphics$Collage.moveX,
-              $Basics.toFloat(-1 * (_p2 / 3 | 0)),
-              A2(drawCircle,A3($Color.rgb,0,52,48),obj.bass_energy))
+      _p9,
+      _p8,
+      _U.list([linePosition({ctor: "_Tuple2"
+                            ,_0: $Basics.toFloat(_p9)
+                            ,_1: _p7._1.height * $Basics.toFloat(_p8 / 2 | 0)})
               ,A2($Graphics$Collage.moveX,
-              $Basics.toFloat(-1 * (_p2 / 6 | 0)),
-              A2(drawCircle,A3($Color.rgb,13,78,73),obj.low_energy))
+              $Basics.toFloat(-1 * (_p9 / 3 | 0)),
+              A2(drawCircle,A4($Color.rgba,0,52,48,5.0e-2),obj.bass_energy))
+              ,A2($Graphics$Collage.moveX,
+              $Basics.toFloat(-1 * (_p9 / 6 | 0)),
+              A2(drawCircle,A4($Color.rgba,13,78,73,5.0e-2),obj.low_energy))
               ,A2($Graphics$Collage.moveX,
               0.0,
-              A2(drawCircle,A3($Color.rgb,35,104,99),obj.mid_energy))
+              A2(drawCircle,A4($Color.rgba,35,104,99,5.0e-2),obj.mid_energy))
               ,A2($Graphics$Collage.moveX,
-              $Basics.toFloat(_p2 / 6 | 0),
-              A2(drawCircle,A3($Color.rgb,65,131,126),obj.high_energy))
+              $Basics.toFloat(_p9 / 6 | 0),
+              A2(drawCircle,
+              A4($Color.rgba,65,131,126,5.0e-2),
+              obj.high_energy))
               ,A2($Graphics$Collage.moveX,
-              $Basics.toFloat(_p2 / 3 | 0),
-              A2(drawCircle,A3($Color.rgb,105,157,153),obj.treble_energy))]));
+              $Basics.toFloat(_p9 / 3 | 0),
+              A2(drawCircle,
+              A4($Color.rgba,105,157,153,5.0e-2),
+              obj.treble_energy))]));
    });
-   var main = A3($Signal.map2,view,$Window.dimensions,ampharos);
-   var clock = $Time.every($Time.millisecond);
-   var MusicObject = F6(function (a,b,c,d,e,f) {
+   var offset = 2 / 870;
+   var update = F2(function (t,_p10) {
+      var _p11 = _p10;
+      var _p13 = _p11._1;
+      var _p12 = _p11._0;
+      return _U.eq(_p13.direction,
+      0) ? _U.cmp(_p13.height - offset * t,-1) < 0 ? {ctor: "_Tuple2"
+                                                     ,_0: _p12
+                                                     ,_1: {direction: 1
+                                                          ,height: -1.0 - (_p13.height - offset * t + 1)}} : {ctor: "_Tuple2"
+                                                                                                             ,_0: _p12
+                                                                                                             ,_1: _U.update(_p13,
+                                                                                                             {height: _p13.height - offset * t})} : _U.cmp(_p13.height + offset * t,
+      1) > 0 ? {ctor: "_Tuple2"
+               ,_0: _p12
+               ,_1: {direction: 0
+                    ,height: 1.0 - (_p13.height + offset * t - 1)}} : {ctor: "_Tuple2"
+                                                                      ,_0: _p12
+                                                                      ,_1: _U.update(_p13,{height: _p13.height + offset * t})};
+   });
+   var LineObject = F2(function (a,b) {
+      return {direction: a,height: b};
+   });
+   var InitialData = F2(function (a,b) {
+      return {peaks: a,start: b};
+   });
+   var RealTimeData = F6(function (a,b,c,d,e,f) {
       return {amplitude: a
              ,bass_energy: b
              ,low_energy: c
@@ -9296,8 +9341,22 @@ Elm.Main.make = function (_elm) {
              ,high_energy: e
              ,treble_energy: f};
    });
+   var initState = {ctor: "_Tuple2"
+                   ,_0: {peaks: _U.list([]),start: 0}
+                   ,_1: {direction: 0,height: 1}};
+   var main = A4($Signal.map3,
+   view,
+   $Window.dimensions,
+   ampharos,
+   A3($Signal.foldp,update,initState,$Time.fps(30)));
    return _elm.Main.values = {_op: _op
-                             ,MusicObject: MusicObject
+                             ,initState: initState
+                             ,RealTimeData: RealTimeData
+                             ,InitialData: InitialData
+                             ,LineObject: LineObject
+                             ,offset: offset
+                             ,update: update
+                             ,linePosition: linePosition
                              ,clock: clock
                              ,drawCircle: drawCircle
                              ,view: view

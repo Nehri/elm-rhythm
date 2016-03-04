@@ -2,7 +2,7 @@ module Main where
 
 import Graphics.Element exposing (show)
 import Task exposing (Task)
-import Time exposing (millisecond, second, minute, Time)
+import Time exposing (millisecond, second, minute, Time, fps)
 
 import Graphics.Element exposing (show, flow, Element)
 import Graphics.Collage exposing (Form, collage, toForm, filled, circle, moveX, moveY, traced, defaultLine, path)
@@ -14,10 +14,15 @@ import Signal
 import Window
 import Color
 
-type alias State = (InitialData, RealTimeData, LineObject)
+--type alias State = (InitialData, RealTimeData, LineObject)
 
+--initState = ({peaks = [], start = 0, bpm = 0}, 
+             --silentMusic, {direction = 0, height = 1})
+type alias State = (InitialData, LineObject)
+
+--initState : InitialData -> State
 initState = ({peaks = [], start = 0, bpm = 0}, 
-             silentMusic, {direction = 0, height = 1})
+                  {direction = 0, height = 1})
 
 type alias RealTimeData = 
     { amplitude    : Float,
@@ -25,12 +30,12 @@ type alias RealTimeData =
       low_energy   : Float,
       mid_energy   : Float,
       high_energy  : Float,
-      treble_energy: Float,
+      treble_energy: Float
     }
 
 type alias InitialData = 
   { peaks : List Float,
-    start : Time,
+    start : Time
     bpm   : Float
   }
 
@@ -39,25 +44,27 @@ type alias LineObject =
     height    : Float
   } 
 
-offset = round ((60/70)/1000)
+offset : Float
+offset = 2/870
 
-updateDirection : Int -> LineObject -> LineObject 
-updateDirection h line = 
-  --moving downwards
-  if line.direction = 0 then
-    if line.height-offset < -h then
-      { direction = 1, height = -h }
+update : Time -> State -> State
+update t (data,line) = 
+    --moving downwards
+    if line.direction == 0 then
+      if line.height-(offset*t) < -1 then
+        (data, { direction = 1, height = ((-1.0)-((line.height-(offset*t))+1))})
+      else
+        (data, { line | height = line.height - (offset * t) })
+    --moving upwards
     else
-      line
-  --moving upwards
-  else
-    if line.height+offset > h then
-      { direction = 0, height = h }
+      if line.height+(offset*t) > 1 then
+        (data, { direction = 0, height = ((1.0)-((line.height+(offset*t))-1))})
+      else
+        (data, { line | height = line.height + (offset * t) })
 
-
-linePosition : (Int, Int) -> LineObject -> Form
+linePosition : (Float,Float) -> Form
 linePosition (w,h) = 
-  traced defaultLine (path [(toFloat -w, 0),(toFloat w, 0)])
+  traced defaultLine (path [(-w,h),(w, h)])
 
 -- A signal that updates to the current time every second
 clock : Signal Time
@@ -68,16 +75,16 @@ drawCircle : Color.Color -> Float -> Form
 drawCircle color r = 
   filled color (circle r)
 
-view : (Int, Int) -> RealTimeData -> Element
-view (w,h) obj =
-  collage w h [
-    (linePosition (w, updateDirection(h, obj) obj)),
-    ( moveX (toFloat (-1*(w//3))) (drawCircle (Color.rgb 0 52 48) obj.bass_energy) ),
-    ( moveX (toFloat (-1*(w//6))) (drawCircle (Color.rgb 13 78 73)   obj.low_energy) ),
-    ( moveX 0.0                   (drawCircle (Color.rgb 35 104 99)  obj.mid_energy) ),
-    ( moveX (toFloat (w//6))      (drawCircle (Color.rgb 65 131 126) obj.high_energy) ),
-    ( moveX (toFloat (w//3))      (drawCircle (Color.rgb 105 157 153)    obj.treble_energy) )
-    ]
+view : (Int, Int) -> RealTimeData -> State -> Element
+view (w,h) obj (data,line) =
+    collage w h [
+      (linePosition (toFloat w,line.height*(toFloat (h//2)))),
+      ( moveX (toFloat (-1*(w//3))) (drawCircle (Color.rgba 0 52 48 0.05) obj.bass_energy) ),
+      ( moveX (toFloat (-1*(w//6))) (drawCircle (Color.rgba 13 78 73 0.05)   obj.low_energy) ),
+      ( moveX 0.0                   (drawCircle (Color.rgba 35 104 99 0.05)  obj.mid_energy) ),
+      ( moveX (toFloat (w//6))      (drawCircle (Color.rgba 65 131 126 0.05) obj.high_energy) ),
+      ( moveX (toFloat (w//3))      (drawCircle (Color.rgba 105 157 153 0.05)    obj.treble_energy) )
+      ]
 
 --objectToValue : RealTimeData -> Encode.Value
 --objectToValue sound = 
@@ -107,11 +114,11 @@ silentMusic =
 port ampharos : Signal RealTimeData
 
 --Port that accepts time and peak info once at the beginning of runtime
-port flaaffy : Signal RealTimeData
+--port flaaffy : Signal RealTimeData
 
-addPeak : RealTimeData -> State -> State
-addPeak peak (t,m,l) =
-  (t,peak::m,l)
+--addPeak : RealTimeData -> State -> State
+--addPeak peak (t,m,l) =
+  --(t,peak::m,l)
 
 main : Signal Element
-main = Signal.map3 view Window.dimensions (Signal.foldp addPeak initState ampharos)
+main = Signal.map3 view Window.dimensions ampharos (Signal.foldp update initState (fps 30))
