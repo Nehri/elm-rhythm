@@ -62,8 +62,8 @@
         var d = new Date();
         startTime = d.getTime();
 
-        var targetPeaks = mySound.duration()*2;
-        mySound.processPeaks(sendInitialData,0.9,0.25,targetPeaks);
+        var targetPeaks = mySound.duration()*6;
+        mySound.processPeaks(sendInitialData,0.9,0.05,targetPeaks);
 
         //start playing the song
         mySound.setVolume(1);
@@ -90,13 +90,14 @@
       //sends data to flaaffy, used as a callback from processPeaks
       function sendInitialData(peakData) {
 
-        console.log(peakData);
-
+        peakData.sort(function(a, b){return a-b});
+        
         var data = {
           peaks : peakData,
           start : startTime,
-          bpm   : 0.0,
+          bpm   : 0,
         }
+        console.log(data);
 
         elmRuntime.ports.flaaffy.send(data);
       }
