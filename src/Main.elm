@@ -31,7 +31,7 @@ type alias RealTimeData =
 
 type alias InitialData = 
   { peaks : List Float,
-    start : Time
+    start : Time,
     bpm   : Float
   }
 
@@ -110,7 +110,7 @@ silentMusic =
 port ampharos : Signal RealTimeData
 
 --Port that accepts time and peak info once at the beginning of runtime
-port flaaffy : Signal RealTimeData
+port flaaffy : Signal InitialData
 
 --addPeak : RealTimeData -> State -> State
 --addPeak peak (t,m,l) =

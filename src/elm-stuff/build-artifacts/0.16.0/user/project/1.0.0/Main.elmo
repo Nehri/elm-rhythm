@@ -19,12 +19,14 @@ Elm.Main.make = function (_elm) {
    var flaaffy = Elm.Native.Port.make(_elm).inboundSignal("flaaffy",
    "Main.InitialData",
    function (v) {
-      return typeof v === "object" && "peaks" in v && "start" in v ? {_: {}
-                                                                     ,peaks: typeof v.peaks === "object" && v.peaks instanceof Array ? Elm.Native.List.make(_elm).fromArray(v.peaks.map(function (v) {
-                                                                        return typeof v === "number" ? v : _U.badPort("a number",v);
-                                                                     })) : _U.badPort("an array",v.peaks)
-                                                                     ,start: typeof v.start === "number" ? v.start : _U.badPort("a number",
-                                                                     v.start)} : _U.badPort("an object with fields `peaks`, `start`",
+      return typeof v === "object" && "peaks" in v && "start" in v && "bpm" in v ? {_: {}
+                                                                                   ,peaks: typeof v.peaks === "object" && v.peaks instanceof Array ? Elm.Native.List.make(_elm).fromArray(v.peaks.map(function (v) {
+                                                                                      return typeof v === "number" ? v : _U.badPort("a number",v);
+                                                                                   })) : _U.badPort("an array",v.peaks)
+                                                                                   ,start: typeof v.start === "number" ? v.start : _U.badPort("a number",
+                                                                                   v.start)
+                                                                                   ,bpm: typeof v.bpm === "number" ? v.bpm : _U.badPort("a number",
+                                                                                   v.bpm)} : _U.badPort("an object with fields `peaks`, `start`, `bpm`",
       v);
    });
    var ampharos = Elm.Native.Port.make(_elm).inboundSignal("ampharos",
@@ -99,11 +101,6 @@ Elm.Main.make = function (_elm) {
               A4($Color.rgba,105,157,153,5.0e-2),
               obj.treble_energy))]));
    });
-<<<<<<< HEAD
-   var main = A3($Signal.map2,view,$Window.dimensions,ampharos);
-   var clock = $Time.every($Time.millisecond);
-   var offset = $Basics.round(60 / 70 / 1000);
-=======
    var offset = 2 / 870;
    var update = F2(function (t,_p10) {
       var _p11 = _p10;
@@ -124,12 +121,11 @@ Elm.Main.make = function (_elm) {
                                                                       ,_0: _p12
                                                                       ,_1: _U.update(_p13,{height: _p13.height + offset * t})};
    });
->>>>>>> 02e237d028dddde209c5f02f66da361bcad638ed
    var LineObject = F2(function (a,b) {
       return {direction: a,height: b};
    });
-   var InitialData = F2(function (a,b) {
-      return {peaks: a,start: b};
+   var InitialData = F3(function (a,b,c) {
+      return {peaks: a,start: b,bpm: c};
    });
    var RealTimeData = F6(function (a,b,c,d,e,f) {
       return {amplitude: a
@@ -139,32 +135,22 @@ Elm.Main.make = function (_elm) {
              ,high_energy: e
              ,treble_energy: f};
    });
-<<<<<<< HEAD
-   var initState = {ctor: "_Tuple3"
-                   ,_0: {peaks: _U.list([]),start: 0}
-                   ,_1: silentMusic
-                   ,_2: {direction: 0,height: 1}};
-=======
    var initState = {ctor: "_Tuple2"
-                   ,_0: {peaks: _U.list([]),start: 0}
+                   ,_0: {peaks: _U.list([]),start: 0,bpm: 0}
                    ,_1: {direction: 0,height: 1}};
    var main = A4($Signal.map3,
    view,
    $Window.dimensions,
    ampharos,
    A3($Signal.foldp,update,initState,$Time.fps(30)));
->>>>>>> 02e237d028dddde209c5f02f66da361bcad638ed
    return _elm.Main.values = {_op: _op
                              ,initState: initState
                              ,RealTimeData: RealTimeData
                              ,InitialData: InitialData
                              ,LineObject: LineObject
                              ,offset: offset
-<<<<<<< HEAD
-=======
                              ,update: update
                              ,linePosition: linePosition
->>>>>>> 02e237d028dddde209c5f02f66da361bcad638ed
                              ,clock: clock
                              ,drawCircle: drawCircle
                              ,view: view
