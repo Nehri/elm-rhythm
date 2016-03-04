@@ -5,7 +5,6 @@
     <script language="javascript" type="text/javascript" src="libraries/p5.js"></script>
     <script language="javascript" src="libraries/p5.sound.js"></script>
     <script type="text/javascript" src="out.js"></script>
-    <!-- script type="text/javascript" src="rhythm.js"></script>-->
     <meta charset="UTF-8">
     <style type="text/css" media="screen">
         #editor {
@@ -23,39 +22,57 @@
     </body>
 
     <script>
-      // Start up Elm
-
-      // initialize the port
-      var init_data = {
-        amplitude : 0.0,
-        bass_energy : 0.0,
-        low_energy : 0.0,
-        mid_energy : 0.0,
-        high_energy : 0.0,
+      // initialize the ports
+      var init_ampharos_data = {
+        amplitude     : 0.0,
+        bass_energy   : 0.0,
+        low_energy    : 0.0,
+        mid_energy    : 0.0,
+        high_energy   : 0.0,
         treble_energy : 0.0,
-        }
-      var elmRuntime = Elm.fullscreen(Elm.Main, {"ampharos" : init_data});
-      elmRuntime.ports.ampharos.send(init_data);
+      }
+      var init_flaaffy_data = {
+        peaks : [],
+        start : 0,
+        bpm   : 0.0,
+      }
+      // Start up Elm
+      var elmRuntime = Elm.fullscreen(Elm.Main, 
+        {"ampharos" : init_ampharos_data, "flaaffy" : init_flaaffy_data});
+      elmRuntime.ports.ampharos.send(init_ampharos_data);
+      elmRuntime.ports.flaaffy.send(init_flaaffy_data);
 
+      //gloabls
       var mySound;
       var amp;
       var fft;
+      var startTime;
 
+      //called before sound plays
       function preload() {
        mySound = loadSound('soundfile.mp3');
        amp = new p5.Amplitude();
        fft = new p5.FFT();
+
       }
 
+      //called once preload is done
       function setup() {
+        //send initial information
+        var d = new Date();
+        startTime = d.getTime();
+
+        var targetPeaks = mySound.duration()*2;
+        mySound.processPeaks(sendInitialData,0.9,0.25,targetPeaks);
+
         //start playing the song
         mySound.setVolume(1);
         mySound.loop();
-        setInterval(sendData, 66);
+        setInterval(sendRealtimeData, 66);
       }
 
-      //sends the energy from low medium and high bands
-      function sendData() {
+      //sends realtime amplitude data to ampharos
+      function sendRealtimeData() {
 
         fft.analyze();
         var data = {
@@ -66,15 +83,40 @@
           high_energy : fft.getEnergy("highMid"),
           treble_energy : fft.getEnergy("treble"),
         }
-        //console.log(data);
 
         elmRuntime.ports.ampharos.send(data);
       }
 
-      
+      //sends data to flaaffy, used as a callback from processPeaks
+      function sendInitialData(peakData) {
 
-      
+        console.log(peakData);
 
+        var data = {
+          peaks : peakData,
+          start : startTime,
+          bpm   : 0.0,
+        }
+
+        elmRuntime.ports.flaaffy.send(data);
+      }
+
+      function toList(arr){
+        var Nil = { ctor: '[]' };
+        var out = Nil;
+        for (var i = arr.length; i--; )
+        {
+          out = Cons(arr[i], out);
+        }
+        return out;
+      }
+      function Cons(hd, tl){
+        return {
+          ctor: '::',
+          _0: hd,
+          _1: tl
+        };
+      }
 
     </script>
 </html>

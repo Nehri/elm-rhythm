@@ -16,7 +16,7 @@ import Color
 
 type alias State = (InitialData, RealTimeData, LineObject)
 
-initState = ({peaks = [], start = 0, bpm = 0}, 
+initState = ({peaks = [], start = 0}, 
              silentMusic, {direction = 0, height = 1})
 
 type alias RealTimeData = 
@@ -25,13 +25,12 @@ type alias RealTimeData =
       low_energy   : Float,
       mid_energy   : Float,
       high_energy  : Float,
-      treble_energy: Float,
+      treble_energy: Float
     }
 
 type alias InitialData = 
   { peaks : List Float,
-    start : Time,
-    bpm   : Float
+    start : Time
   }
 
 type alias LineObject = 
@@ -40,24 +39,6 @@ type alias LineObject =
   } 
 
 offset = round ((60/70)/1000)
-
-updateDirection : Int -> LineObject -> LineObject 
-updateDirection h line = 
-  --moving downwards
-  if line.direction = 0 then
-    if line.height-offset < -h then
-      { direction = 1, height = -h }
-    else
-      line
-  --moving upwards
-  else
-    if line.height+offset > h then
-      { direction = 0, height = h }
-
-
-linePosition : (Int, Int) -> LineObject -> Form
-linePosition (w,h) = 
-  traced defaultLine (path [(toFloat -w, 0),(toFloat w, 0)])
 
 -- A signal that updates to the current time every second
 clock : Signal Time
@@ -71,7 +52,6 @@ drawCircle color r =
 view : (Int, Int) -> RealTimeData -> Element
 view (w,h) obj =
   collage w h [
-    (linePosition (w, updateDirection(h, obj) obj)),
     ( moveX (toFloat (-1*(w//3))) (drawCircle (Color.rgb 0 52 48) obj.bass_energy) ),
     ( moveX (toFloat (-1*(w//6))) (drawCircle (Color.rgb 13 78 73)   obj.low_energy) ),
     ( moveX 0.0                   (drawCircle (Color.rgb 35 104 99)  obj.mid_energy) ),
@@ -103,15 +83,11 @@ silentMusic =
         --    }
         --)
 
---Port that accepts real-time frequency/amplitude info from Javascript
+--Port that accepts real-time amplitude/frequency data from Javascript
 port ampharos : Signal RealTimeData
 
---Port that accepts time and peak info once at the beginning of runtime
-port flaaffy : Signal RealTimeData
-
-addPeak : RealTimeData -> State -> State
-addPeak peak (t,m,l) =
-  (t,peak::m,l)
+--Port that accepts time and peak data once at the beginning of runtime
+port flaaffy : Signal InitialData
 
 main : Signal Element
-main = Signal.map3 view Window.dimensions (Signal.foldp addPeak initState ampharos)
+main = Signal.map2 view Window.dimensions ampharos

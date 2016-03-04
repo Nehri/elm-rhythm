@@ -16,8 +16,19 @@ Elm.Main.make = function (_elm) {
    $Time = Elm.Time.make(_elm),
    $Window = Elm.Window.make(_elm);
    var _op = {};
+   var flaaffy = Elm.Native.Port.make(_elm).inboundSignal("flaaffy",
+   "Main.InitialData",
+   function (v) {
+      return typeof v === "object" && "peaks" in v && "start" in v ? {_: {}
+                                                                     ,peaks: typeof v.peaks === "object" && v.peaks instanceof Array ? Elm.Native.List.make(_elm).fromArray(v.peaks.map(function (v) {
+                                                                        return typeof v === "number" ? v : _U.badPort("a number",v);
+                                                                     })) : _U.badPort("an array",v.peaks)
+                                                                     ,start: typeof v.start === "number" ? v.start : _U.badPort("a number",
+                                                                     v.start)} : _U.badPort("an object with fields `peaks`, `start`",
+      v);
+   });
    var ampharos = Elm.Native.Port.make(_elm).inboundSignal("ampharos",
-   "Main.MusicObject",
+   "Main.RealTimeData",
    function (v) {
       return typeof v === "object" && "amplitude" in v && "bass_energy" in v && "low_energy" in v && "mid_energy" in v && "high_energy" in v && "treble_energy" in v ? {_: {}
                                                                                                                                                                        ,amplitude: typeof v.amplitude === "number" ? v.amplitude : _U.badPort("a number",
@@ -69,7 +80,14 @@ Elm.Main.make = function (_elm) {
    });
    var main = A3($Signal.map2,view,$Window.dimensions,ampharos);
    var clock = $Time.every($Time.millisecond);
-   var MusicObject = F6(function (a,b,c,d,e,f) {
+   var offset = $Basics.round(60 / 70 / 1000);
+   var LineObject = F2(function (a,b) {
+      return {direction: a,height: b};
+   });
+   var InitialData = F2(function (a,b) {
+      return {peaks: a,start: b};
+   });
+   var RealTimeData = F6(function (a,b,c,d,e,f) {
       return {amplitude: a
              ,bass_energy: b
              ,low_energy: c
@@ -77,8 +95,16 @@ Elm.Main.make = function (_elm) {
              ,high_energy: e
              ,treble_energy: f};
    });
+   var initState = {ctor: "_Tuple3"
+                   ,_0: {peaks: _U.list([]),start: 0}
+                   ,_1: silentMusic
+                   ,_2: {direction: 0,height: 1}};
    return _elm.Main.values = {_op: _op
-                             ,MusicObject: MusicObject
+                             ,initState: initState
+                             ,RealTimeData: RealTimeData
+                             ,InitialData: InitialData
+                             ,LineObject: LineObject
+                             ,offset: offset
                              ,clock: clock
                              ,drawCircle: drawCircle
                              ,view: view
