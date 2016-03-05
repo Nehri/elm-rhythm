@@ -86,7 +86,7 @@
         mySound.processPeaks(initialize,0.9,0.1,targetPeaks);
       }
 
-      //starts song and sends initial data to flaaffy
+      //does normal version of analysis and starts up data sending loops
       function initialize(peakData) {
 
         //get data for the second half of the song
@@ -99,22 +99,8 @@
         //not sure why some are out of order, but this fixes that
         peaks.sort(function(a, b){return a-b});
 
-        //now that time expensive pre-processing is over get starting time
-        var d = new Date();
-        var startTime = d.getTime();
-
-        //start playing the song
-        mySound.setVolume(1);
-        mySound.loop();
-        
-        var data = {
-          peaks : peaks,
-          start : startTime,
-          bpm   : 0,
-        }
-        console.log(data);
-
-        elmRuntime.ports.flaaffy.send(data);
+        //now that time expensive pre-processing is over, start the game
+        setInterval(play, dur*1000);
         setInterval(sendRealtimeData, 66);
       }
 
@@ -134,7 +120,24 @@
         elmRuntime.ports.ampharos.send(data);
       }
 
+      //playss song and sends initial data through flaaffy
+      function start() {
       
+        var d = new Date();
+        var startTime = d.getTime();
+
+        //start playing the song
+        mySound.setVolume(1);
+        mySound.play();
+
+        var data = {
+          peaks : peaks,
+          start : startTime,
+          bpm   : 0,
+        }
+
+        elmRuntime.ports.flaaffy.send(data);
+      }
 
       function toList(arr){
         var Nil = { ctor: '[]' };
