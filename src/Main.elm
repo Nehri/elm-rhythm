@@ -43,8 +43,8 @@ type alias LineObject =
   } 
 
 type alias PeakObject = 
-  { timeDelta : Float,
-    range     : Int,
+  { songStart : Time,
+    timeDelta : Float,
     clicked   : Bool
   }
 
@@ -66,21 +66,25 @@ update t line =
       else
         { line | height = line.height + (offset * t) }
 
-updatePeaks : InputSignal -> InitialData -> InitialData
-updatePeaks inputSig init =
+toPeakObjects : InitialData -> List PeakObject
+toPeakObjects data =
+  let start = data.start in
+    List.map (\time -> {songStart = start, timeDelta = time, clicked = False}) data.peaks
+
+updatePeaks : InputSignal -> List PeakObject -> List PeakObject
+updatePeaks inputSig peaks =
   case inputSig of
-    InitData data         -> data
+    InitData data         -> toPeakObjects data
     TimeDelta (curTime,b) ->
-      let p = init.peaks in
-        case p of
-          []     -> init
-          p'::ps -> 
-            let timeDistance = (init.start + (p' * 1000)) - curTime in
-              if timeDistance < -300 then
-                  updatePeaks inputSig {init | peaks = ps}
-                --Beats that are too far away
-                else 
-                  init
+      case peaks of
+        []     -> []
+        p::ps -> 
+          let timeDistance = (p.songStart + (p.timeDelta * 1000)) - curTime in
+            if timeDistance < -300 then
+                updatePeaks inputSig ps
+              --Beats that are too far away
+              else 
+                peaks
 
 linePosition : (Float,Float) -> Form
 linePosition (w,h) = 
@@ -170,13 +174,6 @@ silentMusic =
       treble_energy = 0.0
     }
 
-initializePeaks : InitialData
-initializePeaks = 
-  { peaks = [],
-    start = 0,
-    bpm = 0
-  }
-
 --floatToObject : Decoder RealTimeData
 --floatToObject = 
     --let soundDecoder = Decode.object1 RealTimeData ("amplitude" := Decode.float) in
@@ -194,5 +191,5 @@ port flaaffy : Signal InitialData
 
 main : Signal Element
 main = Signal.map4 view Window.dimensions ampharos 
-      (Signal.foldp updatePeaks initializePeaks (Signal.merge (Signal.map InitData flaaffy) (Signal.map TimeDelta (timestamp Keyboard.space)))) 
+      (Signal.foldp updatePeaks [] (Signal.merge (Signal.map InitData flaaffy) (Signal.map TimeDelta (timestamp Keyboard.space)))) 
       (timestamp (Signal.foldp update initState (fps 30)))
