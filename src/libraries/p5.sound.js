@@ -1901,7 +1901,7 @@ soundfile = function () {
       // new array of peaks at top tempo within a bpmVariance
       var bpmVariance = 5;
       var tempoPeaks = getPeaksAtTopTempo(allPeaks, topTempos[0].tempo, filteredBuffer.sampleRate, bpmVariance);
-      callback(tempoPeaks);
+      callback(tempoPeaks,this.tempo);
     };
   };
   // process peaks

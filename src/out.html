@@ -48,10 +48,11 @@
       var amp;
       var fft;
       var dur;
+      var bpm;
       var targetPeaks;
       var peaks = [];
 
-      //called before sound plays
+      //called before html finishes loading
       function preload() {
        mySound = loadSound('soundfile.mp3');
        reversed = loadSound('soundfile.mp3');
@@ -61,7 +62,7 @@
 
       //called once preload is done
       function setup() {
-        //define some globals for readability
+        //define some globals for readability/efficiency
         dur = mySound.duration();
         targetPeaks = dur*3;
         reversed.reverseBuffer();
@@ -73,7 +74,7 @@
       //since it seems the p5 processPeaks function gains accuracy overtime,
       //and drops most peaks from the first 10% of the song, 
       //we do an analysis of the reversed data to get good info for the first half of the song
-      function intermediate(reversedPeakData){
+      function intermediate(reversedPeakData,reversedTempo){
 
         //get data for the first half of the song
         for (var i = 0; i < reversedPeakData.length; i++) {
@@ -87,7 +88,7 @@
       }
 
       //does the normal analysis, then starts playing the song
-      function initialize(peakData) {
+      function initialize(peakData,tempo) {
 
         //get data for the second half of the song
         for (var i = 0; i < peakData.length; i++) {
@@ -96,11 +97,9 @@
           }
         }
 
+        bpm = tempo; //store tempo data
         //not sure why some are out of order, but this fixes that
         peaks.sort(function(a, b){return a-b});
-
-        console.log(dur);
-        console.log(peaks);
 
         //now that time expensive pre-processing is over, start the game
         start();
@@ -128,7 +127,7 @@
       function start() {
       
         var d = new Date();
-        var startTime = d.getTime();
+        var start = d.getTime();
 
         //start playing the song
         mySound.setVolume(1);
@@ -136,8 +135,8 @@
 
         var data = {
           peaks : peaks,
-          start : startTime,
-          bpm   : 0,
+          start : start,
+          bpm   : bpm,
         }
 
         elmRuntime.ports.flaaffy.send(data);

@@ -113,11 +113,15 @@ drawPeak : (Int, Int) -> Time -> PeakObject -> Time -> State -> Float -> Form
 drawPeak (w,h) curTime peak timeDistance line r =
   let futurePos = update timeDistance line in
   let h2 = futurePos.height in
-  let w2 = (round (peak.timeDelta * 100)) % w in
+  let w2 =
+  let mod =  ((round (peak.timeDelta * 100)) % (2*w)) in
+    if mod < w then (w//(-2)) + mod
+    else (w//2) - (mod%w)
+  in
     if futurePos.direction == 0 then
-      (move (0, h2*(toFloat (h//2))) (drawCircle (Color.rgba 95 86 255 0.8) r))
+      (move (toFloat w2, h2*(toFloat (h//2))) (drawCircle (Color.rgba 95 86 255 0.8) r))
     else
-      (move (0, h2*(toFloat (h//2))) (drawCircle (Color.rgba 124 255 153 0.8) r))
+      (move (toFloat w2, h2*(toFloat (h//2))) (drawCircle (Color.rgba 124 255 153 0.8) r))
 
 drawPeaks : (Int, Int) -> Time -> List PeakObject -> State -> List Form
 drawPeaks (w,h) curTime p line =
