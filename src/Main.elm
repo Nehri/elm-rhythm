@@ -2,10 +2,10 @@ module Main where
 
 import Graphics.Element exposing (show)
 import Task exposing (Task)
-import Time exposing (millisecond, second, minute, Time, fps)
+import Time exposing (millisecond, second, minute, Time, fps, timestamp)
 
 import Graphics.Element exposing (show, flow, Element)
-import Graphics.Collage exposing (Form, collage, toForm, filled, circle, moveX, moveY, traced, defaultLine, path)
+import Graphics.Collage exposing (Form, collage, toForm, filled, circle, move, moveX, moveY, traced, defaultLine, path)
 
 import Json.Encode as Encode
 import Json.Decode as Decode exposing ((:=), Decoder)
@@ -14,11 +14,11 @@ import Signal
 import Window
 import Color
 
-type alias State = (InitialData, LineObject)
+type alias State = LineObject
 
 initState : State
-initState = ({peaks = [], start = 0, bpm = 0}, 
-                  {direction = 0, height = 1})
+--initState = ({peaks = [], start = 0, bpm = 0}, 
+initState = {direction = 0, height = 1}
 
 type alias RealTimeData = 
     { amplitude    : Float,
@@ -40,23 +40,29 @@ type alias LineObject =
     height    : Float
   } 
 
+type alias PeakObject = 
+  { timeDelta : Float,
+    range     : Int,
+    clicked   : Bool
+  }
+
 offset : Float
-offset = 2/870
+offset = 2/727
 
 update : Time -> State -> State
-update t (data,line) = 
+update t line = 
     --moving downwards
     if line.direction == 0 then
       if line.height-(offset*t) < -1 then
-        (data, { direction = 1, height = ((-1.0)-((line.height-(offset*t))+1))})
+        { direction = 1, height = ((-1.0)-((line.height-(offset*t))+1))}
       else
-        (data, { line | height = line.height - (offset * t) })
+        { line | height = line.height - (offset * t) }
     --moving upwards
     else
       if line.height+(offset*t) > 1 then
-        (data, { direction = 0, height = ((1.0)-((line.height+(offset*t))-1))})
+        { direction = 0, height = ((1.0)-((line.height+(offset*t))-1))}
       else
-        (data, { line | height = line.height + (offset * t) })
+        { line | height = line.height + (offset * t) }
 
 linePosition : (Float,Float) -> Form
 linePosition (w,h) = 
@@ -71,16 +77,64 @@ drawCircle : Color.Color -> Float -> Form
 drawCircle color r = 
   filled color (circle r)
 
-view : (Int, Int) -> RealTimeData -> State -> Element
-view (w,h) obj (data,line) =
-    collage w h [
-      (linePosition (toFloat w,line.height*(toFloat (h//2)))),
-      ( moveX (toFloat (-1*(w//3))) (drawCircle (Color.rgba 0 52 48 0.05) obj.bass_energy) ),
-      ( moveX (toFloat (-1*(w//6))) (drawCircle (Color.rgba 13 78 73 0.05)   obj.low_energy) ),
-      ( moveX 0.0                   (drawCircle (Color.rgba 35 104 99 0.05)  obj.mid_energy) ),
-      ( moveX (toFloat (w//6))      (drawCircle (Color.rgba 65 131 126 0.05) obj.high_energy) ),
-      ( moveX (toFloat (w//3))      (drawCircle (Color.rgba 105 157 153 0.05)    obj.treble_energy) )
-      ]
+drawBackground : Int -> RealTimeData -> List Form
+drawBackground w rt =
+  [
+    ( moveX (toFloat (-1*(w//3))) (drawCircle (Color.rgba 0 52 48 0.05) rt.bass_energy) ),
+    ( moveX (toFloat (-1*(w//6))) (drawCircle (Color.rgba 13 78 73 0.05) rt.low_energy) ),
+    ( moveX 0.0                   (drawCircle (Color.rgba 35 104 99 0.05) rt.mid_energy) ),
+    ( moveX (toFloat (w//6))      (drawCircle (Color.rgba 65 131 126 0.05) rt.high_energy) ),
+    ( moveX (toFloat (w//3))      (drawCircle (Color.rgba 105 157 153 0.05) rt.treble_energy) )
+  ]
+
+drawPeak : (Int, Int) -> Time -> Time -> Time -> State -> Float -> Form
+drawPeak (w,h) curTime futureTime timeDistance line r =
+  let futurePos = update timeDistance line in
+  let h2 = futurePos.height in
+  let w2 = (round (futureTime * 100)) % w in
+    if futurePos.direction == 0 then
+      (move (0, h2*(toFloat (h//2))) (drawCircle (Color.rgba 95 86 255 0.8) r))
+    else
+      (move (0, h2*(toFloat (h//2))) (drawCircle (Color.rgba 124 255 153 0.8) r))
+
+drawPeaks : (Int, Int) -> Time -> InitialData -> State -> List Form
+drawPeaks (w,h) curTime init line =
+  let p = init.peaks in
+    case p of
+      []     -> []
+      p'::ps -> 
+        --Skip beats that have already been clicked
+        --if p'.clicked == True then
+          --drawPeaks (w,h) curTime {init | peaks = ps} line
+        --else
+          let timeDistance = (init.start + (p' * 1000)) - curTime in
+            --Beats that are passed
+            if timeDistance < -300 then
+              drawPeaks (w,h) curTime {init | peaks = ps} line
+            --Beats that are too far away
+            else if timeDistance > 700 then
+              []
+            else
+              let r =
+                if timeDistance < -200 then 10
+                else if timeDistance < -100 then 25
+                else if timeDistance < -50 then 35
+                else if timeDistance < 0 then 45
+                else if timeDistance < 300 then 50
+                else if timeDistance < 350 then 45
+                else if timeDistance < 400 then 40
+                else if timeDistance < 450 then 35
+                else if timeDistance < 500 then 30
+                else if timeDistance < 550 then 25
+                else if timeDistance < 600 then 22
+                else if timeDistance < 650 then 20
+                else 10 in
+                  (drawPeak (w,h) curTime p' timeDistance line r)::(drawPeaks (w,h) curTime {init | peaks = ps} line)
+
+view : (Int, Int) -> RealTimeData -> InitialData -> (Time, State) -> Element
+view (w,h) rt init (t, line) =
+    collage w h ((linePosition (toFloat w,line.height*(toFloat (h//2))))::
+      (List.append (drawPeaks (w,h) t init line) (drawBackground w rt)))
 
 --objectToValue : RealTimeData -> Encode.Value
 --objectToValue sound = 
@@ -112,9 +166,5 @@ port ampharos : Signal RealTimeData
 --Port that accepts time and peak info once at the beginning of runtime
 port flaaffy : Signal InitialData
 
---addPeak : RealTimeData -> State -> State
---addPeak peak (t,m,l) =
-  --(t,peak::m,l)
-
 main : Signal Element
-main = Signal.map3 view Window.dimensions ampharos (Signal.foldp update initState (fps 30))
+main = Signal.map4 view Window.dimensions ampharos flaaffy (timestamp (Signal.foldp update initState (fps 30)))

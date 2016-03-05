@@ -58,6 +58,25 @@ Elm.Main.make = function (_elm) {
       color,
       $Graphics$Collage.circle(r));
    });
+   var drawBackground = F2(function (w,rt) {
+      return _U.list([A2($Graphics$Collage.moveX,
+                     $Basics.toFloat(-1 * (w / 3 | 0)),
+                     A2(drawCircle,A4($Color.rgba,0,52,48,5.0e-2),rt.bass_energy))
+                     ,A2($Graphics$Collage.moveX,
+                     $Basics.toFloat(-1 * (w / 6 | 0)),
+                     A2(drawCircle,A4($Color.rgba,13,78,73,5.0e-2),rt.low_energy))
+                     ,A2($Graphics$Collage.moveX,
+                     0.0,
+                     A2(drawCircle,A4($Color.rgba,35,104,99,5.0e-2),rt.mid_energy))
+                     ,A2($Graphics$Collage.moveX,
+                     $Basics.toFloat(w / 6 | 0),
+                     A2(drawCircle,A4($Color.rgba,65,131,126,5.0e-2),rt.high_energy))
+                     ,A2($Graphics$Collage.moveX,
+                     $Basics.toFloat(w / 3 | 0),
+                     A2(drawCircle,
+                     A4($Color.rgba,105,157,153,5.0e-2),
+                     rt.treble_energy))]);
+   });
    var clock = $Time.every($Time.millisecond);
    var linePosition = function (_p0) {
       var _p1 = _p0;
@@ -70,56 +89,114 @@ Elm.Main.make = function (_elm) {
                                       ,_1: _p2}
                                      ,{ctor: "_Tuple2",_0: _p3,_1: _p2}])));
    };
-   var view = F3(function (_p5,obj,_p4) {
-      var _p6 = _p5;
-      var _p9 = _p6._0;
-      var _p8 = _p6._1;
-      var _p7 = _p4;
-      return A3($Graphics$Collage.collage,
-      _p9,
-      _p8,
-      _U.list([linePosition({ctor: "_Tuple2"
-                            ,_0: $Basics.toFloat(_p9)
-                            ,_1: _p7._1.height * $Basics.toFloat(_p8 / 2 | 0)})
-              ,A2($Graphics$Collage.moveX,
-              $Basics.toFloat(-1 * (_p9 / 3 | 0)),
-              A2(drawCircle,A4($Color.rgba,0,52,48,5.0e-2),obj.bass_energy))
-              ,A2($Graphics$Collage.moveX,
-              $Basics.toFloat(-1 * (_p9 / 6 | 0)),
-              A2(drawCircle,A4($Color.rgba,13,78,73,5.0e-2),obj.low_energy))
-              ,A2($Graphics$Collage.moveX,
-              0.0,
-              A2(drawCircle,A4($Color.rgba,35,104,99,5.0e-2),obj.mid_energy))
-              ,A2($Graphics$Collage.moveX,
-              $Basics.toFloat(_p9 / 6 | 0),
-              A2(drawCircle,
-              A4($Color.rgba,65,131,126,5.0e-2),
-              obj.high_energy))
-              ,A2($Graphics$Collage.moveX,
-              $Basics.toFloat(_p9 / 3 | 0),
-              A2(drawCircle,
-              A4($Color.rgba,105,157,153,5.0e-2),
-              obj.treble_energy))]));
+   var offset = 2 / 727;
+   var update = F2(function (t,line) {
+      return _U.eq(line.direction,
+      0) ? _U.cmp(line.height - offset * t,-1) < 0 ? {direction: 1
+                                                     ,height: -1.0 - (line.height - offset * t + 1)} : _U.update(line,
+      {height: line.height - offset * t}) : _U.cmp(line.height + offset * t,
+      1) > 0 ? {direction: 0
+               ,height: 1.0 - (line.height + offset * t - 1)} : _U.update(line,
+      {height: line.height + offset * t});
    });
-   var offset = 2 / 870;
-   var update = F2(function (t,_p10) {
-      var _p11 = _p10;
-      var _p13 = _p11._1;
-      var _p12 = _p11._0;
-      return _U.eq(_p13.direction,
-      0) ? _U.cmp(_p13.height - offset * t,-1) < 0 ? {ctor: "_Tuple2"
-                                                     ,_0: _p12
-                                                     ,_1: {direction: 1
-                                                          ,height: -1.0 - (_p13.height - offset * t + 1)}} : {ctor: "_Tuple2"
-                                                                                                             ,_0: _p12
-                                                                                                             ,_1: _U.update(_p13,
-                                                                                                             {height: _p13.height - offset * t})} : _U.cmp(_p13.height + offset * t,
-      1) > 0 ? {ctor: "_Tuple2"
-               ,_0: _p12
-               ,_1: {direction: 0
-                    ,height: 1.0 - (_p13.height + offset * t - 1)}} : {ctor: "_Tuple2"
-                                                                      ,_0: _p12
-                                                                      ,_1: _U.update(_p13,{height: _p13.height + offset * t})};
+   var drawPeak = F6(function (_p4,
+   curTime,
+   futureTime,
+   timeDistance,
+   line,
+   r) {
+      var _p5 = _p4;
+      var _p6 = _p5._1;
+      var futurePos = A2(update,timeDistance,line);
+      var h2 = futurePos.height;
+      var w2 = A2($Basics._op["%"],
+      $Basics.round(futureTime * 100),
+      _p5._0);
+      return _U.eq(futurePos.direction,0) ? A2($Graphics$Collage.move,
+      {ctor: "_Tuple2",_0: 0,_1: h2 * $Basics.toFloat(_p6 / 2 | 0)},
+      A2(drawCircle,
+      A4($Color.rgba,95,86,255,0.8),
+      r)) : A2($Graphics$Collage.move,
+      {ctor: "_Tuple2",_0: 0,_1: h2 * $Basics.toFloat(_p6 / 2 | 0)},
+      A2(drawCircle,A4($Color.rgba,124,255,153,0.8),r));
+   });
+   var drawPeaks = F4(function (_p7,curTime,init,line) {
+      drawPeaks: while (true) {
+         var _p8 = _p7;
+         var _p13 = _p8._0;
+         var _p12 = _p8._1;
+         var p = init.peaks;
+         var _p9 = p;
+         if (_p9.ctor === "[]") {
+               return _U.list([]);
+            } else {
+               var _p11 = _p9._1;
+               var _p10 = _p9._0;
+               var timeDistance = init.start + _p10 * 1000 - curTime;
+               if (_U.cmp(timeDistance,-300) < 0) {
+                     var _v4 = {ctor: "_Tuple2",_0: _p13,_1: _p12},
+                     _v5 = curTime,
+                     _v6 = _U.update(init,{peaks: _p11}),
+                     _v7 = line;
+                     _p7 = _v4;
+                     curTime = _v5;
+                     init = _v6;
+                     line = _v7;
+                     continue drawPeaks;
+                  } else if (_U.cmp(timeDistance,700) > 0) return _U.list([]);
+                  else {
+                        var r = _U.cmp(timeDistance,
+                        -200) < 0 ? 10 : _U.cmp(timeDistance,
+                        -100) < 0 ? 25 : _U.cmp(timeDistance,
+                        -50) < 0 ? 35 : _U.cmp(timeDistance,
+                        0) < 0 ? 45 : _U.cmp(timeDistance,
+                        300) < 0 ? 50 : _U.cmp(timeDistance,
+                        350) < 0 ? 45 : _U.cmp(timeDistance,
+                        400) < 0 ? 40 : _U.cmp(timeDistance,
+                        450) < 0 ? 35 : _U.cmp(timeDistance,
+                        500) < 0 ? 30 : _U.cmp(timeDistance,
+                        550) < 0 ? 25 : _U.cmp(timeDistance,
+                        600) < 0 ? 22 : _U.cmp(timeDistance,650) < 0 ? 20 : 10;
+                        return A2($List._op["::"],
+                        A6(drawPeak,
+                        {ctor: "_Tuple2",_0: _p13,_1: _p12},
+                        curTime,
+                        _p10,
+                        timeDistance,
+                        line,
+                        r),
+                        A4(drawPeaks,
+                        {ctor: "_Tuple2",_0: _p13,_1: _p12},
+                        curTime,
+                        _U.update(init,{peaks: _p11}),
+                        line));
+                     }
+            }
+      }
+   });
+   var view = F4(function (_p15,rt,init,_p14) {
+      var _p16 = _p15;
+      var _p20 = _p16._0;
+      var _p19 = _p16._1;
+      var _p17 = _p14;
+      var _p18 = _p17._1;
+      return A3($Graphics$Collage.collage,
+      _p20,
+      _p19,
+      A2($List._op["::"],
+      linePosition({ctor: "_Tuple2"
+                   ,_0: $Basics.toFloat(_p20)
+                   ,_1: _p18.height * $Basics.toFloat(_p19 / 2 | 0)}),
+      A2($List.append,
+      A4(drawPeaks,
+      {ctor: "_Tuple2",_0: _p20,_1: _p19},
+      _p17._0,
+      init,
+      _p18),
+      A2(drawBackground,_p20,rt))));
+   });
+   var PeakObject = F3(function (a,b,c) {
+      return {timeDelta: a,range: b,clicked: c};
    });
    var LineObject = F2(function (a,b) {
       return {direction: a,height: b};
@@ -135,24 +212,30 @@ Elm.Main.make = function (_elm) {
              ,high_energy: e
              ,treble_energy: f};
    });
-   var initState = {ctor: "_Tuple2"
-                   ,_0: {peaks: _U.list([]),start: 0,bpm: 0}
-                   ,_1: {direction: 0,height: 1}};
-   var main = A4($Signal.map3,
+   var initState = {direction: 0,height: 1};
+   var main = A5($Signal.map4,
    view,
    $Window.dimensions,
    ampharos,
-   A3($Signal.foldp,update,initState,$Time.fps(30)));
+   flaaffy,
+   $Time.timestamp(A3($Signal.foldp,
+   update,
+   initState,
+   $Time.fps(30))));
    return _elm.Main.values = {_op: _op
                              ,initState: initState
                              ,RealTimeData: RealTimeData
                              ,InitialData: InitialData
                              ,LineObject: LineObject
+                             ,PeakObject: PeakObject
                              ,offset: offset
                              ,update: update
                              ,linePosition: linePosition
                              ,clock: clock
                              ,drawCircle: drawCircle
+                             ,drawBackground: drawBackground
+                             ,drawPeak: drawPeak
+                             ,drawPeaks: drawPeaks
                              ,view: view
                              ,silentMusic: silentMusic
                              ,main: main};
