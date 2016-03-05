@@ -109,30 +109,29 @@ drawBackground w rt =
     ( moveX (toFloat (w//3))      (drawCircle (Color.rgba 105 157 153 0.05) rt.treble_energy) )
   ]
 
-drawPeak : (Int, Int) -> Time -> Time -> Time -> State -> Float -> Form
-drawPeak (w,h) curTime futureTime timeDistance line r =
+drawPeak : (Int, Int) -> Time -> PeakObject -> Time -> State -> Float -> Form
+drawPeak (w,h) curTime peak timeDistance line r =
   let futurePos = update timeDistance line in
   let h2 = futurePos.height in
-  let w2 = (round (futureTime * 100)) % w in
+  let w2 = (round (peak.timeDelta * 100)) % w in
     if futurePos.direction == 0 then
       (move (0, h2*(toFloat (h//2))) (drawCircle (Color.rgba 95 86 255 0.8) r))
     else
       (move (0, h2*(toFloat (h//2))) (drawCircle (Color.rgba 124 255 153 0.8) r))
 
-drawPeaks : (Int, Int) -> Time -> InitialData -> State -> List Form
-drawPeaks (w,h) curTime init line =
-  let p = init.peaks in
+drawPeaks : (Int, Int) -> Time -> List PeakObject -> State -> List Form
+drawPeaks (w,h) curTime p line =
     case p of
       []     -> []
       p'::ps -> 
         --Skip beats that have already been clicked
-        --if p'.clicked == True then
-          --drawPeaks (w,h) curTime {init | peaks = ps} line
-        --else
-          let timeDistance = (init.start + (p' * 1000)) - curTime in
+        if p'.clicked == True then
+          drawPeaks (w,h) curTime ps line
+        else
+          let timeDistance = (p'.songStart + (p'.timeDelta * 1000)) - curTime in
             --Beats that are passed
             if timeDistance < -300 then
-              drawPeaks (w,h) curTime {init | peaks = ps} line
+              drawPeaks (w,h) curTime ps line
             --Beats that are too far away
             else if timeDistance > 700 then
               []
@@ -151,13 +150,13 @@ drawPeaks (w,h) curTime init line =
                 else if timeDistance < 600 then 22
                 else if timeDistance < 650 then 20
                 else 10 in
-                  (drawPeak (w,h) curTime p' timeDistance line r)::(drawPeaks (w,h) curTime {init | peaks = ps} line)
+                  (drawPeak (w,h) curTime p' timeDistance line r)::(drawPeaks (w,h) curTime ps line)
 
-view : (Int, Int) -> RealTimeData -> InitialData -> (Time, State) -> Element
-view (w,h) rt init (t, line) =
+view : (Int, Int) -> RealTimeData -> List PeakObject -> (Time, State) -> Element
+view (w,h) rt peaks (t, line) =
   let (w',h') = (w-100, h-100) in
     collage w h ((linePosition (toFloat w,line.height*(toFloat (h'//2))))::
-      (List.append (drawPeaks (w',h') t init line) (drawBackground w' rt)))
+      (List.append (drawPeaks (w',h') t peaks line) (drawBackground w' rt)))
 
 --objectToValue : RealTimeData -> Encode.Value
 --objectToValue sound = 
