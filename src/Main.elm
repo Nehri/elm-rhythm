@@ -13,12 +13,14 @@ import Json.Decode as Decode exposing ((:=), Decoder)
 import Signal
 import Window
 import Color
+import Keyboard
 
 type alias State = LineObject
 
 initState : State
---initState = ({peaks = [], start = 0, bpm = 0}, 
 initState = {direction = 0, height = 1}
+
+type InputSignal = InitData {peaks : List Float, start : Time, bpm : Float} | TimeDelta (Time,Bool)
 
 type alias RealTimeData = 
     { amplitude    : Float,
@@ -47,7 +49,7 @@ type alias PeakObject =
   }
 
 offset : Float
-offset = 2/727
+offset = 2/870
 
 update : Time -> State -> State
 update t line = 
@@ -63,6 +65,22 @@ update t line =
         { direction = 0, height = ((1.0)-((line.height+(offset*t))-1))}
       else
         { line | height = line.height + (offset * t) }
+
+updatePeaks : InputSignal -> InitialData -> InitialData
+updatePeaks inputSig init =
+  case inputSig of
+    InitData data         -> data
+    TimeDelta (curTime,b) ->
+      let p = init.peaks in
+        case p of
+          []     -> init
+          p'::ps -> 
+            let timeDistance = (init.start + (p' * 1000)) - curTime in
+              if timeDistance < -300 then
+                  updatePeaks inputSig {init | peaks = ps}
+                --Beats that are too far away
+                else 
+                  init
 
 linePosition : (Float,Float) -> Form
 linePosition (w,h) = 
@@ -133,8 +151,9 @@ drawPeaks (w,h) curTime init line =
 
 view : (Int, Int) -> RealTimeData -> InitialData -> (Time, State) -> Element
 view (w,h) rt init (t, line) =
-    collage w h ((linePosition (toFloat w,line.height*(toFloat (h//2))))::
-      (List.append (drawPeaks (w,h) t init line) (drawBackground w rt)))
+  let (w',h') = (w-100, h-100) in
+    collage w h ((linePosition (toFloat w,line.height*(toFloat (h'//2))))::
+      (List.append (drawPeaks (w',h') t init line) (drawBackground w' rt)))
 
 --objectToValue : RealTimeData -> Encode.Value
 --objectToValue sound = 
@@ -150,6 +169,13 @@ silentMusic =
       high_energy = 0.0,
       treble_energy = 0.0
     }
+
+initializePeaks : InitialData
+initializePeaks = 
+  { peaks = [],
+    start = 0,
+    bpm = 0
+  }
 
 --floatToObject : Decoder RealTimeData
 --floatToObject = 
@@ -167,4 +193,6 @@ port ampharos : Signal RealTimeData
 port flaaffy : Signal InitialData
 
 main : Signal Element
-main = Signal.map4 view Window.dimensions ampharos flaaffy (timestamp (Signal.foldp update initState (fps 30)))
+main = Signal.map4 view Window.dimensions ampharos 
+      (Signal.foldp updatePeaks initializePeaks (Signal.merge (Signal.map InitData flaaffy) (Signal.map TimeDelta (timestamp Keyboard.space)))) 
+      (timestamp (Signal.foldp update initState (fps 30)))

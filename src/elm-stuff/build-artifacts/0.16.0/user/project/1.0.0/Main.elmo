@@ -9,6 +9,7 @@ Elm.Main.make = function (_elm) {
    $Debug = Elm.Debug.make(_elm),
    $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
    $Graphics$Element = Elm.Graphics.Element.make(_elm),
+   $Keyboard = Elm.Keyboard.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
@@ -47,6 +48,7 @@ Elm.Main.make = function (_elm) {
                                                                                                                                                                        v.treble_energy)} : _U.badPort("an object with fields `amplitude`, `bass_energy`, `low_energy`, `mid_energy`, `high_energy`, `treble_energy`",
       v);
    });
+   var initializePeaks = {peaks: _U.list([]),start: 0,bpm: 0};
    var silentMusic = {amplitude: 0.0
                      ,bass_energy: 0.0
                      ,low_energy: 0.0
@@ -89,7 +91,29 @@ Elm.Main.make = function (_elm) {
                                       ,_1: _p2}
                                      ,{ctor: "_Tuple2",_0: _p3,_1: _p2}])));
    };
-   var offset = 2 / 727;
+   var updatePeaks = F2(function (inputSig,init) {
+      updatePeaks: while (true) {
+         var _p4 = inputSig;
+         if (_p4.ctor === "InitData") {
+               return _p4._0;
+            } else {
+               var p = init.peaks;
+               var _p5 = p;
+               if (_p5.ctor === "[]") {
+                     return init;
+                  } else {
+                     var timeDistance = init.start + _p5._0 * 1000 - _p4._0._0;
+                     if (_U.cmp(timeDistance,-300) < 0) {
+                           var _v3 = inputSig,_v4 = _U.update(init,{peaks: _p5._1});
+                           inputSig = _v3;
+                           init = _v4;
+                           continue updatePeaks;
+                        } else return init;
+                  }
+            }
+      }
+   });
+   var offset = 2 / 870;
    var update = F2(function (t,line) {
       return _U.eq(line.direction,
       0) ? _U.cmp(line.height - offset * t,-1) < 0 ? {direction: 1
@@ -99,49 +123,49 @@ Elm.Main.make = function (_elm) {
                ,height: 1.0 - (line.height + offset * t - 1)} : _U.update(line,
       {height: line.height + offset * t});
    });
-   var drawPeak = F6(function (_p4,
+   var drawPeak = F6(function (_p6,
    curTime,
    futureTime,
    timeDistance,
    line,
    r) {
-      var _p5 = _p4;
-      var _p6 = _p5._1;
+      var _p7 = _p6;
+      var _p8 = _p7._1;
       var futurePos = A2(update,timeDistance,line);
       var h2 = futurePos.height;
       var w2 = A2($Basics._op["%"],
       $Basics.round(futureTime * 100),
-      _p5._0);
+      _p7._0);
       return _U.eq(futurePos.direction,0) ? A2($Graphics$Collage.move,
-      {ctor: "_Tuple2",_0: 0,_1: h2 * $Basics.toFloat(_p6 / 2 | 0)},
+      {ctor: "_Tuple2",_0: 0,_1: h2 * $Basics.toFloat(_p8 / 2 | 0)},
       A2(drawCircle,
       A4($Color.rgba,95,86,255,0.8),
       r)) : A2($Graphics$Collage.move,
-      {ctor: "_Tuple2",_0: 0,_1: h2 * $Basics.toFloat(_p6 / 2 | 0)},
+      {ctor: "_Tuple2",_0: 0,_1: h2 * $Basics.toFloat(_p8 / 2 | 0)},
       A2(drawCircle,A4($Color.rgba,124,255,153,0.8),r));
    });
-   var drawPeaks = F4(function (_p7,curTime,init,line) {
+   var drawPeaks = F4(function (_p9,curTime,init,line) {
       drawPeaks: while (true) {
-         var _p8 = _p7;
-         var _p13 = _p8._0;
-         var _p12 = _p8._1;
+         var _p10 = _p9;
+         var _p15 = _p10._0;
+         var _p14 = _p10._1;
          var p = init.peaks;
-         var _p9 = p;
-         if (_p9.ctor === "[]") {
+         var _p11 = p;
+         if (_p11.ctor === "[]") {
                return _U.list([]);
             } else {
-               var _p11 = _p9._1;
-               var _p10 = _p9._0;
-               var timeDistance = init.start + _p10 * 1000 - curTime;
+               var _p13 = _p11._1;
+               var _p12 = _p11._0;
+               var timeDistance = init.start + _p12 * 1000 - curTime;
                if (_U.cmp(timeDistance,-300) < 0) {
-                     var _v4 = {ctor: "_Tuple2",_0: _p13,_1: _p12},
-                     _v5 = curTime,
-                     _v6 = _U.update(init,{peaks: _p11}),
-                     _v7 = line;
-                     _p7 = _v4;
-                     curTime = _v5;
-                     init = _v6;
-                     line = _v7;
+                     var _v8 = {ctor: "_Tuple2",_0: _p15,_1: _p14},
+                     _v9 = curTime,
+                     _v10 = _U.update(init,{peaks: _p13}),
+                     _v11 = line;
+                     _p9 = _v8;
+                     curTime = _v9;
+                     init = _v10;
+                     line = _v11;
                      continue drawPeaks;
                   } else if (_U.cmp(timeDistance,700) > 0) return _U.list([]);
                   else {
@@ -159,41 +183,40 @@ Elm.Main.make = function (_elm) {
                         600) < 0 ? 22 : _U.cmp(timeDistance,650) < 0 ? 20 : 10;
                         return A2($List._op["::"],
                         A6(drawPeak,
-                        {ctor: "_Tuple2",_0: _p13,_1: _p12},
+                        {ctor: "_Tuple2",_0: _p15,_1: _p14},
                         curTime,
-                        _p10,
+                        _p12,
                         timeDistance,
                         line,
                         r),
                         A4(drawPeaks,
-                        {ctor: "_Tuple2",_0: _p13,_1: _p12},
+                        {ctor: "_Tuple2",_0: _p15,_1: _p14},
                         curTime,
-                        _U.update(init,{peaks: _p11}),
+                        _U.update(init,{peaks: _p13}),
                         line));
                      }
             }
       }
    });
-   var view = F4(function (_p15,rt,init,_p14) {
-      var _p16 = _p15;
-      var _p20 = _p16._0;
-      var _p19 = _p16._1;
-      var _p17 = _p14;
-      var _p18 = _p17._1;
+   var view = F4(function (_p17,rt,init,_p16) {
+      var _p18 = _p17;
+      var _p23 = _p18._0;
+      var _p22 = _p18._1;
+      var _p19 = _p16;
+      var _p21 = _p19._1;
+      var _p20 = {ctor: "_Tuple2",_0: _p23 - 100,_1: _p22 - 100};
+      var w$ = _p20._0;
+      var h$ = _p20._1;
       return A3($Graphics$Collage.collage,
-      _p20,
-      _p19,
+      _p23,
+      _p22,
       A2($List._op["::"],
       linePosition({ctor: "_Tuple2"
-                   ,_0: $Basics.toFloat(_p20)
-                   ,_1: _p18.height * $Basics.toFloat(_p19 / 2 | 0)}),
+                   ,_0: $Basics.toFloat(_p23)
+                   ,_1: _p21.height * $Basics.toFloat(h$ / 2 | 0)}),
       A2($List.append,
-      A4(drawPeaks,
-      {ctor: "_Tuple2",_0: _p20,_1: _p19},
-      _p17._0,
-      init,
-      _p18),
-      A2(drawBackground,_p20,rt))));
+      A4(drawPeaks,{ctor: "_Tuple2",_0: w$,_1: h$},_p19._0,init,_p21),
+      A2(drawBackground,w$,rt))));
    });
    var PeakObject = F3(function (a,b,c) {
       return {timeDelta: a,range: b,clicked: c};
@@ -212,24 +235,38 @@ Elm.Main.make = function (_elm) {
              ,high_energy: e
              ,treble_energy: f};
    });
+   var TimeDelta = function (a) {
+      return {ctor: "TimeDelta",_0: a};
+   };
+   var InitData = function (a) {
+      return {ctor: "InitData",_0: a};
+   };
    var initState = {direction: 0,height: 1};
    var main = A5($Signal.map4,
    view,
    $Window.dimensions,
    ampharos,
-   flaaffy,
+   A3($Signal.foldp,
+   updatePeaks,
+   initializePeaks,
+   A2($Signal.merge,
+   A2($Signal.map,InitData,flaaffy),
+   A2($Signal.map,TimeDelta,$Time.timestamp($Keyboard.space)))),
    $Time.timestamp(A3($Signal.foldp,
    update,
    initState,
    $Time.fps(30))));
    return _elm.Main.values = {_op: _op
                              ,initState: initState
+                             ,InitData: InitData
+                             ,TimeDelta: TimeDelta
                              ,RealTimeData: RealTimeData
                              ,InitialData: InitialData
                              ,LineObject: LineObject
                              ,PeakObject: PeakObject
                              ,offset: offset
                              ,update: update
+                             ,updatePeaks: updatePeaks
                              ,linePosition: linePosition
                              ,clock: clock
                              ,drawCircle: drawCircle
@@ -238,5 +275,6 @@ Elm.Main.make = function (_elm) {
                              ,drawPeaks: drawPeaks
                              ,view: view
                              ,silentMusic: silentMusic
+                             ,initializePeaks: initializePeaks
                              ,main: main};
 };
