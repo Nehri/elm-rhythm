@@ -1645,8 +1645,14 @@ soundfile = function () {
    */
   p5.SoundFile.prototype.reverseBuffer = function () {
     var curVol = this.getVolume();
-    this.setVolume(0, 0.01, 0);
-    this.pause();
+    var wasPlaying = false;
+    
+    if (this.isPlaying()) {
+      this.setVolume(0, 0.01, 0);
+      wasPlaying = True;
+      this.pause();
+    }
+
     if (this.buffer) {
       for (var i = 0; i < this.buffer.numberOfChannels; i++) {
         Array.prototype.reverse.call(this.buffer.getChannelData(i));
@@ -1656,8 +1662,10 @@ soundfile = function () {
     } else {
       throw 'SoundFile is not done loading';
     }
-    this.setVolume(curVol, 0.01, 0.0101);
-    this.play();
+    if (wasPlaying){
+      this.setVolume(curVol, 0.01, 0.0101);
+      this.play();
+    }
   };
   /**
    *  Schedule an event to be called when the soundfile

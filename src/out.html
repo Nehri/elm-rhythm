@@ -46,28 +46,76 @@
       var mySound;
       var amp;
       var fft;
-      var startTime;
+      var dur;
+      var targetPeaks;
+      var peaks = [];
 
       //called before sound plays
       function preload() {
        mySound = loadSound('soundfile.mp3');
        amp = new p5.Amplitude();
        fft = new p5.FFT();
-
       }
 
       //called once preload is done
       function setup() {
-        //send initial information
-        var d = new Date();
-        startTime = d.getTime();
+        //define some globals for readability
+        dur = mySound.duration();
+        targetPeaks = dur*3;
 
-        var targetPeaks = mySound.duration()*6;
-        mySound.processPeaks(sendInitialData,0.9,0.05,targetPeaks);
+        //do reversed section of analysis
+        mySound.reverseBuffer(); //reverse to send to reversed
+        mySound.processPeaks(reversed,0.9,0.1,targetPeaks);
+      }
+
+      //since it seems the p5 processPeaks function gains accuracy overtime,
+      //and drops most peaks from the first 10% of the song, 
+      //we do an analysis of the reversed data to get good info for the first half of the song
+      //we do the reversed first so we can flip it back for playtime
+      function reversed(reversedPeakData){
+
+        //get data for the first half of the song
+        for (var i = 0; i < reversedPeakData.length; i++) {
+          if (reversedPeakData[i] > (dur/2)) {
+            peaks.push(dur-reversedPeakData[i]);
+          }
+        }
+
+        //do the normal version of the analysis
+        mySound.reverseBuffer(); //reverse it back to normal
+        mySound.processPeaks(initialize,0.9,0.1,targetPeaks);
+      }
+
+
+      //starts song and sends initial data to flaaffy
+      function initialize(peakData) {
+
+        //get data for the second half of the song
+        for (var i = 0; i < peakData.length; i++) {
+          if (peakData[i] > (dur/2)) {
+            peaks.push(peakData[i]);
+          }
+        }
+
+        //not sure why some are out of order, but this fixes that
+        peaks.sort(function(a, b){return a-b});
+
+        //now that time expensive pre-processing is over get starting time
+        var d = new Date();
+        var startTime = d.getTime();
 
         //start playing the song
         mySound.setVolume(1);
         mySound.loop();
+        
+        var data = {
+          peaks : peaks,
+          start : startTime,
+          bpm   : 0,
+        }
+        console.log(data);
+
+        elmRuntime.ports.flaaffy.send(data);
         setInterval(sendRealtimeData, 66);
       }
 
@@ -87,20 +135,7 @@
         elmRuntime.ports.ampharos.send(data);
       }
 
-      //sends data to flaaffy, used as a callback from processPeaks
-      function sendInitialData(peakData) {
-
-        peakData.sort(function(a, b){return a-b});
-        
-        var data = {
-          peaks : peakData,
-          start : startTime,
-          bpm   : 0,
-        }
-        console.log(data);
-
-        elmRuntime.ports.flaaffy.send(data);
-      }
+      
 
       function toList(arr){
         var Nil = { ctor: '[]' };
