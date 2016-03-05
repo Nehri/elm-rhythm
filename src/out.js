@@ -9131,6 +9131,264 @@ Elm.Json.Decode.make = function (_elm) {
                                     ,value: value
                                     ,customDecoder: customDecoder};
 };
+Elm.Set = Elm.Set || {};
+Elm.Set.make = function (_elm) {
+   "use strict";
+   _elm.Set = _elm.Set || {};
+   if (_elm.Set.values) return _elm.Set.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Dict = Elm.Dict.make(_elm),
+   $List = Elm.List.make(_elm);
+   var _op = {};
+   var foldr = F3(function (f,b,_p0) {
+      var _p1 = _p0;
+      return A3($Dict.foldr,
+      F3(function (k,_p2,b) {    return A2(f,k,b);}),
+      b,
+      _p1._0);
+   });
+   var foldl = F3(function (f,b,_p3) {
+      var _p4 = _p3;
+      return A3($Dict.foldl,
+      F3(function (k,_p5,b) {    return A2(f,k,b);}),
+      b,
+      _p4._0);
+   });
+   var toList = function (_p6) {
+      var _p7 = _p6;
+      return $Dict.keys(_p7._0);
+   };
+   var size = function (_p8) {
+      var _p9 = _p8;
+      return $Dict.size(_p9._0);
+   };
+   var member = F2(function (k,_p10) {
+      var _p11 = _p10;
+      return A2($Dict.member,k,_p11._0);
+   });
+   var isEmpty = function (_p12) {
+      var _p13 = _p12;
+      return $Dict.isEmpty(_p13._0);
+   };
+   var Set_elm_builtin = function (a) {
+      return {ctor: "Set_elm_builtin",_0: a};
+   };
+   var empty = Set_elm_builtin($Dict.empty);
+   var singleton = function (k) {
+      return Set_elm_builtin(A2($Dict.singleton,
+      k,
+      {ctor: "_Tuple0"}));
+   };
+   var insert = F2(function (k,_p14) {
+      var _p15 = _p14;
+      return Set_elm_builtin(A3($Dict.insert,
+      k,
+      {ctor: "_Tuple0"},
+      _p15._0));
+   });
+   var fromList = function (xs) {
+      return A3($List.foldl,insert,empty,xs);
+   };
+   var map = F2(function (f,s) {
+      return fromList(A2($List.map,f,toList(s)));
+   });
+   var remove = F2(function (k,_p16) {
+      var _p17 = _p16;
+      return Set_elm_builtin(A2($Dict.remove,k,_p17._0));
+   });
+   var union = F2(function (_p19,_p18) {
+      var _p20 = _p19;
+      var _p21 = _p18;
+      return Set_elm_builtin(A2($Dict.union,_p20._0,_p21._0));
+   });
+   var intersect = F2(function (_p23,_p22) {
+      var _p24 = _p23;
+      var _p25 = _p22;
+      return Set_elm_builtin(A2($Dict.intersect,_p24._0,_p25._0));
+   });
+   var diff = F2(function (_p27,_p26) {
+      var _p28 = _p27;
+      var _p29 = _p26;
+      return Set_elm_builtin(A2($Dict.diff,_p28._0,_p29._0));
+   });
+   var filter = F2(function (p,_p30) {
+      var _p31 = _p30;
+      return Set_elm_builtin(A2($Dict.filter,
+      F2(function (k,_p32) {    return p(k);}),
+      _p31._0));
+   });
+   var partition = F2(function (p,_p33) {
+      var _p34 = _p33;
+      var _p35 = A2($Dict.partition,
+      F2(function (k,_p36) {    return p(k);}),
+      _p34._0);
+      var p1 = _p35._0;
+      var p2 = _p35._1;
+      return {ctor: "_Tuple2"
+             ,_0: Set_elm_builtin(p1)
+             ,_1: Set_elm_builtin(p2)};
+   });
+   return _elm.Set.values = {_op: _op
+                            ,empty: empty
+                            ,singleton: singleton
+                            ,insert: insert
+                            ,remove: remove
+                            ,isEmpty: isEmpty
+                            ,member: member
+                            ,size: size
+                            ,foldl: foldl
+                            ,foldr: foldr
+                            ,map: map
+                            ,filter: filter
+                            ,partition: partition
+                            ,union: union
+                            ,intersect: intersect
+                            ,diff: diff
+                            ,toList: toList
+                            ,fromList: fromList};
+};
+Elm.Native.Keyboard = {};
+
+Elm.Native.Keyboard.make = function(localRuntime) {
+	localRuntime.Native = localRuntime.Native || {};
+	localRuntime.Native.Keyboard = localRuntime.Native.Keyboard || {};
+	if (localRuntime.Native.Keyboard.values)
+	{
+		return localRuntime.Native.Keyboard.values;
+	}
+
+	var NS = Elm.Native.Signal.make(localRuntime);
+
+
+	function keyEvent(event)
+	{
+		return {
+			alt: event.altKey,
+			meta: event.metaKey,
+			keyCode: event.keyCode
+		};
+	}
+
+
+	function keyStream(node, eventName, handler)
+	{
+		var stream = NS.input(eventName, { alt: false, meta: false, keyCode: 0 });
+
+		localRuntime.addListener([stream.id], node, eventName, function(e) {
+			localRuntime.notify(stream.id, handler(e));
+		});
+
+		return stream;
+	}
+
+	var downs = keyStream(document, 'keydown', keyEvent);
+	var ups = keyStream(document, 'keyup', keyEvent);
+	var presses = keyStream(document, 'keypress', keyEvent);
+	var blurs = keyStream(window, 'blur', function() { return null; });
+
+
+	return localRuntime.Native.Keyboard.values = {
+		downs: downs,
+		ups: ups,
+		blurs: blurs,
+		presses: presses
+	};
+};
+
+Elm.Keyboard = Elm.Keyboard || {};
+Elm.Keyboard.make = function (_elm) {
+   "use strict";
+   _elm.Keyboard = _elm.Keyboard || {};
+   if (_elm.Keyboard.values) return _elm.Keyboard.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Char = Elm.Char.make(_elm),
+   $Native$Keyboard = Elm.Native.Keyboard.make(_elm),
+   $Set = Elm.Set.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var presses = A2($Signal.map,
+   function (_) {
+      return _.keyCode;
+   },
+   $Native$Keyboard.presses);
+   var toXY = F2(function (_p0,keyCodes) {
+      var _p1 = _p0;
+      var is = function (keyCode) {
+         return A2($Set.member,keyCode,keyCodes) ? 1 : 0;
+      };
+      return {x: is(_p1.right) - is(_p1.left)
+             ,y: is(_p1.up) - is(_p1.down)};
+   });
+   var Directions = F4(function (a,b,c,d) {
+      return {up: a,down: b,left: c,right: d};
+   });
+   var dropMap = F2(function (f,signal) {
+      return $Signal.dropRepeats(A2($Signal.map,f,signal));
+   });
+   var EventInfo = F3(function (a,b,c) {
+      return {alt: a,meta: b,keyCode: c};
+   });
+   var Blur = {ctor: "Blur"};
+   var Down = function (a) {    return {ctor: "Down",_0: a};};
+   var Up = function (a) {    return {ctor: "Up",_0: a};};
+   var rawEvents = $Signal.mergeMany(_U.list([A2($Signal.map,
+                                             Up,
+                                             $Native$Keyboard.ups)
+                                             ,A2($Signal.map,Down,$Native$Keyboard.downs)
+                                             ,A2($Signal.map,$Basics.always(Blur),$Native$Keyboard.blurs)]));
+   var empty = {alt: false,meta: false,keyCodes: $Set.empty};
+   var update = F2(function (event,model) {
+      var _p2 = event;
+      switch (_p2.ctor)
+      {case "Down": var _p3 = _p2._0;
+           return {alt: _p3.alt
+                  ,meta: _p3.meta
+                  ,keyCodes: A2($Set.insert,_p3.keyCode,model.keyCodes)};
+         case "Up": var _p4 = _p2._0;
+           return {alt: _p4.alt
+                  ,meta: _p4.meta
+                  ,keyCodes: A2($Set.remove,_p4.keyCode,model.keyCodes)};
+         default: return empty;}
+   });
+   var model = A3($Signal.foldp,update,empty,rawEvents);
+   var alt = A2(dropMap,function (_) {    return _.alt;},model);
+   var meta = A2(dropMap,function (_) {    return _.meta;},model);
+   var keysDown = A2(dropMap,
+   function (_) {
+      return _.keyCodes;
+   },
+   model);
+   var arrows = A2(dropMap,
+   toXY({up: 38,down: 40,left: 37,right: 39}),
+   keysDown);
+   var wasd = A2(dropMap,
+   toXY({up: 87,down: 83,left: 65,right: 68}),
+   keysDown);
+   var isDown = function (keyCode) {
+      return A2(dropMap,$Set.member(keyCode),keysDown);
+   };
+   var ctrl = isDown(17);
+   var shift = isDown(16);
+   var space = isDown(32);
+   var enter = isDown(13);
+   var Model = F3(function (a,b,c) {
+      return {alt: a,meta: b,keyCodes: c};
+   });
+   return _elm.Keyboard.values = {_op: _op
+                                 ,arrows: arrows
+                                 ,wasd: wasd
+                                 ,enter: enter
+                                 ,space: space
+                                 ,ctrl: ctrl
+                                 ,shift: shift
+                                 ,alt: alt
+                                 ,meta: meta
+                                 ,isDown: isDown
+                                 ,keysDown: keysDown
+                                 ,presses: presses};
+};
 Elm.Native = Elm.Native || {};
 Elm.Native.Window = {};
 Elm.Native.Window.make = function make(localRuntime) {
@@ -9228,6 +9486,7 @@ Elm.Main.make = function (_elm) {
    $Debug = Elm.Debug.make(_elm),
    $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
    $Graphics$Element = Elm.Graphics.Element.make(_elm),
+   $Keyboard = Elm.Keyboard.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
@@ -9266,6 +9525,7 @@ Elm.Main.make = function (_elm) {
                                                                                                                                                                        v.treble_energy)} : _U.badPort("an object with fields `amplitude`, `bass_energy`, `low_energy`, `mid_energy`, `high_energy`, `treble_energy`",
       v);
    });
+   var initializePeaks = {peaks: _U.list([]),start: 0,bpm: 0};
    var silentMusic = {amplitude: 0.0
                      ,bass_energy: 0.0
                      ,low_energy: 0.0
@@ -9308,7 +9568,29 @@ Elm.Main.make = function (_elm) {
                                       ,_1: _p2}
                                      ,{ctor: "_Tuple2",_0: _p3,_1: _p2}])));
    };
-   var offset = 2 / 727;
+   var updatePeaks = F2(function (inputSig,init) {
+      updatePeaks: while (true) {
+         var _p4 = inputSig;
+         if (_p4.ctor === "InitData") {
+               return _p4._0;
+            } else {
+               var p = init.peaks;
+               var _p5 = p;
+               if (_p5.ctor === "[]") {
+                     return init;
+                  } else {
+                     var timeDistance = init.start + _p5._0 * 1000 - _p4._0._0;
+                     if (_U.cmp(timeDistance,-300) < 0) {
+                           var _v3 = inputSig,_v4 = _U.update(init,{peaks: _p5._1});
+                           inputSig = _v3;
+                           init = _v4;
+                           continue updatePeaks;
+                        } else return init;
+                  }
+            }
+      }
+   });
+   var offset = 2 / 870;
    var update = F2(function (t,line) {
       return _U.eq(line.direction,
       0) ? _U.cmp(line.height - offset * t,-1) < 0 ? {direction: 1
@@ -9318,49 +9600,49 @@ Elm.Main.make = function (_elm) {
                ,height: 1.0 - (line.height + offset * t - 1)} : _U.update(line,
       {height: line.height + offset * t});
    });
-   var drawPeak = F6(function (_p4,
+   var drawPeak = F6(function (_p6,
    curTime,
    futureTime,
    timeDistance,
    line,
    r) {
-      var _p5 = _p4;
-      var _p6 = _p5._1;
+      var _p7 = _p6;
+      var _p8 = _p7._1;
       var futurePos = A2(update,timeDistance,line);
       var h2 = futurePos.height;
       var w2 = A2($Basics._op["%"],
       $Basics.round(futureTime * 100),
-      _p5._0);
+      _p7._0);
       return _U.eq(futurePos.direction,0) ? A2($Graphics$Collage.move,
-      {ctor: "_Tuple2",_0: 0,_1: h2 * $Basics.toFloat(_p6 / 2 | 0)},
+      {ctor: "_Tuple2",_0: 0,_1: h2 * $Basics.toFloat(_p8 / 2 | 0)},
       A2(drawCircle,
       A4($Color.rgba,95,86,255,0.8),
       r)) : A2($Graphics$Collage.move,
-      {ctor: "_Tuple2",_0: 0,_1: h2 * $Basics.toFloat(_p6 / 2 | 0)},
+      {ctor: "_Tuple2",_0: 0,_1: h2 * $Basics.toFloat(_p8 / 2 | 0)},
       A2(drawCircle,A4($Color.rgba,124,255,153,0.8),r));
    });
-   var drawPeaks = F4(function (_p7,curTime,init,line) {
+   var drawPeaks = F4(function (_p9,curTime,init,line) {
       drawPeaks: while (true) {
-         var _p8 = _p7;
-         var _p13 = _p8._0;
-         var _p12 = _p8._1;
+         var _p10 = _p9;
+         var _p15 = _p10._0;
+         var _p14 = _p10._1;
          var p = init.peaks;
-         var _p9 = p;
-         if (_p9.ctor === "[]") {
+         var _p11 = p;
+         if (_p11.ctor === "[]") {
                return _U.list([]);
             } else {
-               var _p11 = _p9._1;
-               var _p10 = _p9._0;
-               var timeDistance = init.start + _p10 * 1000 - curTime;
+               var _p13 = _p11._1;
+               var _p12 = _p11._0;
+               var timeDistance = init.start + _p12 * 1000 - curTime;
                if (_U.cmp(timeDistance,-300) < 0) {
-                     var _v4 = {ctor: "_Tuple2",_0: _p13,_1: _p12},
-                     _v5 = curTime,
-                     _v6 = _U.update(init,{peaks: _p11}),
-                     _v7 = line;
-                     _p7 = _v4;
-                     curTime = _v5;
-                     init = _v6;
-                     line = _v7;
+                     var _v8 = {ctor: "_Tuple2",_0: _p15,_1: _p14},
+                     _v9 = curTime,
+                     _v10 = _U.update(init,{peaks: _p13}),
+                     _v11 = line;
+                     _p9 = _v8;
+                     curTime = _v9;
+                     init = _v10;
+                     line = _v11;
                      continue drawPeaks;
                   } else if (_U.cmp(timeDistance,700) > 0) return _U.list([]);
                   else {
@@ -9378,41 +9660,40 @@ Elm.Main.make = function (_elm) {
                         600) < 0 ? 22 : _U.cmp(timeDistance,650) < 0 ? 20 : 10;
                         return A2($List._op["::"],
                         A6(drawPeak,
-                        {ctor: "_Tuple2",_0: _p13,_1: _p12},
+                        {ctor: "_Tuple2",_0: _p15,_1: _p14},
                         curTime,
-                        _p10,
+                        _p12,
                         timeDistance,
                         line,
                         r),
                         A4(drawPeaks,
-                        {ctor: "_Tuple2",_0: _p13,_1: _p12},
+                        {ctor: "_Tuple2",_0: _p15,_1: _p14},
                         curTime,
-                        _U.update(init,{peaks: _p11}),
+                        _U.update(init,{peaks: _p13}),
                         line));
                      }
             }
       }
    });
-   var view = F4(function (_p15,rt,init,_p14) {
-      var _p16 = _p15;
-      var _p20 = _p16._0;
-      var _p19 = _p16._1;
-      var _p17 = _p14;
-      var _p18 = _p17._1;
+   var view = F4(function (_p17,rt,init,_p16) {
+      var _p18 = _p17;
+      var _p23 = _p18._0;
+      var _p22 = _p18._1;
+      var _p19 = _p16;
+      var _p21 = _p19._1;
+      var _p20 = {ctor: "_Tuple2",_0: _p23 - 100,_1: _p22 - 100};
+      var w$ = _p20._0;
+      var h$ = _p20._1;
       return A3($Graphics$Collage.collage,
-      _p20,
-      _p19,
+      _p23,
+      _p22,
       A2($List._op["::"],
       linePosition({ctor: "_Tuple2"
-                   ,_0: $Basics.toFloat(_p20)
-                   ,_1: _p18.height * $Basics.toFloat(_p19 / 2 | 0)}),
+                   ,_0: $Basics.toFloat(_p23)
+                   ,_1: _p21.height * $Basics.toFloat(h$ / 2 | 0)}),
       A2($List.append,
-      A4(drawPeaks,
-      {ctor: "_Tuple2",_0: _p20,_1: _p19},
-      _p17._0,
-      init,
-      _p18),
-      A2(drawBackground,_p20,rt))));
+      A4(drawPeaks,{ctor: "_Tuple2",_0: w$,_1: h$},_p19._0,init,_p21),
+      A2(drawBackground,w$,rt))));
    });
    var PeakObject = F3(function (a,b,c) {
       return {timeDelta: a,range: b,clicked: c};
@@ -9431,24 +9712,38 @@ Elm.Main.make = function (_elm) {
              ,high_energy: e
              ,treble_energy: f};
    });
+   var TimeDelta = function (a) {
+      return {ctor: "TimeDelta",_0: a};
+   };
+   var InitData = function (a) {
+      return {ctor: "InitData",_0: a};
+   };
    var initState = {direction: 0,height: 1};
    var main = A5($Signal.map4,
    view,
    $Window.dimensions,
    ampharos,
-   flaaffy,
+   A3($Signal.foldp,
+   updatePeaks,
+   initializePeaks,
+   A2($Signal.merge,
+   A2($Signal.map,InitData,flaaffy),
+   A2($Signal.map,TimeDelta,$Time.timestamp($Keyboard.space)))),
    $Time.timestamp(A3($Signal.foldp,
    update,
    initState,
    $Time.fps(30))));
    return _elm.Main.values = {_op: _op
                              ,initState: initState
+                             ,InitData: InitData
+                             ,TimeDelta: TimeDelta
                              ,RealTimeData: RealTimeData
                              ,InitialData: InitialData
                              ,LineObject: LineObject
                              ,PeakObject: PeakObject
                              ,offset: offset
                              ,update: update
+                             ,updatePeaks: updatePeaks
                              ,linePosition: linePosition
                              ,clock: clock
                              ,drawCircle: drawCircle
@@ -9457,5 +9752,6 @@ Elm.Main.make = function (_elm) {
                              ,drawPeaks: drawPeaks
                              ,view: view
                              ,silentMusic: silentMusic
+                             ,initializePeaks: initializePeaks
                              ,main: main};
 };
