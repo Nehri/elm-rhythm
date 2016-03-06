@@ -5,7 +5,7 @@ import Task exposing (Task)
 import Time exposing (millisecond, second, minute, Time, fps, timestamp)
 
 import Graphics.Element exposing (show, flow, Element, image)
-import Graphics.Collage exposing (Form, collage, toForm, filled, circle, move, moveX, moveY, traced, defaultLine, path, ngon)
+import Graphics.Collage exposing (Form, collage, toForm, filled, circle, move, moveX, moveY, traced, defaultLine, path, ngon, text)
 
 import Json.Encode as Encode
 import Json.Decode as Decode exposing ((:=), Decoder)
@@ -14,6 +14,8 @@ import Signal
 import Window
 import Color
 import Keyboard
+
+import Text exposing (fromString)
 
 type alias State = LineObject
 
@@ -132,6 +134,13 @@ drawBackground w rt =
     ( moveX (toFloat (w//3))      (drawCircle (Color.rgba 105 157 153 0.05) rt.treble_energy) )
   ]
 
+drawScore : (Float, Float) -> Int -> Int -> Form
+drawScore (w,h) hits misses =
+  move (w/2-100,h/2-100) (text 
+    (Text.typeface ["avant garde", "arial"] (Text.height 30 (Text.color (Color.rgba 138 0 94 0.5) 
+                      (fromString 
+                        ((toString hits)++" / "++(toString (hits+misses))))))))
+
 drawPeak : (Int, Int) -> Time -> PeakObject -> Time -> State -> Float -> Form
 drawPeak (w,h) curTime peak timeDistance line r =        
   let futurePos = update timeDistance line in
@@ -188,6 +197,7 @@ view : (Int, Int) -> RealTimeData -> (List PeakObject, Int, Int) -> (Time, State
 view (w,h) rt (peaks, hits, misses) (t, line) =
   let (w',h') = (w, h-100) in
     collage w (h-100) ((linePosition (toFloat w,line.height*(toFloat (h'//2))))::
+      (drawScore (toFloat w,toFloat h) hits misses)::
       (List.append (drawPeaks (w',h') t peaks line) (drawBackground w rt)))
 
 --objectToValue : RealTimeData -> Encode.Value
