@@ -4,8 +4,8 @@ import Graphics.Element exposing (show)
 import Task exposing (Task)
 import Time exposing (millisecond, second, minute, Time, fps, timestamp)
 
-import Graphics.Element exposing (show, flow, Element)
-import Graphics.Collage exposing (Form, collage, toForm, filled, circle, move, moveX, moveY, traced, defaultLine, path)
+import Graphics.Element exposing (show, flow, Element, image)
+import Graphics.Collage exposing (Form, collage, toForm, filled, circle, move, moveX, moveY, traced, defaultLine, path, ngon)
 
 import Json.Encode as Encode
 import Json.Decode as Decode exposing ((:=), Decoder)
@@ -49,7 +49,11 @@ type alias PeakObject =
   }
 
 offset : Float
-offset = 2/870
+offset = 2/1200
+
+hitImage : String
+hitImage = 
+    "https://uxtraining.com/assets/UX2-f717a856d969481dceffd400d6cfaf2c.png"
 
 update : Time -> State -> State
 update t line = 
@@ -82,8 +86,13 @@ updatePeaks inputSig peaks =
           let timeDistance = (p.songStart + (p.timeDelta * 1000)) - curTime in
             if timeDistance < -300 then
                 updatePeaks inputSig ps
-              --Beats that are too far away
-              else 
+            else if timeDistance > -100 && timeDistance < 100 then
+                if b then
+                  {p | clicked = True}::(updatePeaks inputSig ps) 
+                else
+                  peaks
+            --Beats that are too far away
+            else
                 peaks
 
 linePosition : (Float,Float) -> Form
@@ -99,6 +108,13 @@ drawCircle : Color.Color -> Float -> Form
 drawCircle color r = 
   filled color (circle r)
 
+drawImage : (Float, Float) -> String -> Form
+drawImage (w,h) url =
+    url
+    |> image 50 50
+    |> toForm
+    |> move (w,h)
+
 drawBackground : Int -> RealTimeData -> List Form
 drawBackground w rt =
   [
@@ -109,12 +125,14 @@ drawBackground w rt =
     ( moveX (toFloat (w//3))      (drawCircle (Color.rgba 105 157 153 0.05) rt.treble_energy) )
   ]
 
-drawPeak : (Int, Int) -> Time -> PeakObject -> Time -> State -> Float -> Form
-drawPeak (w,h) curTime peak timeDistance line r =
+drawPeak : (Int, Int) -> Time -> PeakObject -> Time -> State -> Float -> Bool -> Form
+drawPeak (w,h) curTime peak timeDistance line r clicked =
   let futurePos = update timeDistance line in
   let h2 = futurePos.height in
   let w2 = (round (peak.timeDelta * 100)) % w in
-    if futurePos.direction == 0 then
+    if clicked then
+      (move (0, h2*(toFloat (h//2))) (drawImage (0,0) hitImage))
+    else if futurePos.direction == 0 then
       (move (0, h2*(toFloat (h//2))) (drawCircle (Color.rgba 95 86 255 0.8) r))
     else
       (move (0, h2*(toFloat (h//2))) (drawCircle (Color.rgba 124 255 153 0.8) r))
@@ -125,9 +143,9 @@ drawPeaks (w,h) curTime p line =
       []     -> []
       p'::ps -> 
         --Skip beats that have already been clicked
-        if p'.clicked == True then
-          drawPeaks (w,h) curTime ps line
-        else
+        --if p'.clicked == True then
+          --drawPeaks (w,h) curTime ps line
+        --else
           let timeDistance = (p'.songStart + (p'.timeDelta * 1000)) - curTime in
             --Beats that are passed
             if timeDistance < -300 then
@@ -150,7 +168,7 @@ drawPeaks (w,h) curTime p line =
                 else if timeDistance < 600 then 22
                 else if timeDistance < 650 then 20
                 else 10 in
-                  (drawPeak (w,h) curTime p' timeDistance line r)::(drawPeaks (w,h) curTime ps line)
+                  (drawPeak (w,h) curTime p' timeDistance line r p'.clicked)::(drawPeaks (w,h) curTime ps line)
 
 view : (Int, Int) -> RealTimeData -> List PeakObject -> (Time, State) -> Element
 view (w,h) rt peaks (t, line) =
