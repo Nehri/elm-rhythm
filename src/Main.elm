@@ -27,7 +27,7 @@ type alias State = (List PeakObject, Int, Int, LineObject, Int, Time)
 initState : State
 initState = ([], 0, 0, {direction = 0, height = 1}, 0, 0)
 
-type InputSignal = InitData {peaks : List Float, start : Time, bpm : Int} | Click (Time,Bool) | TimeUpdate Time
+type InputSignal = InitData {peaks : List Float, start : Time, bpm : Int} | Click (Time,Bool) | TimeUpdate (Time, Time)
 
 type alias RealTimeData = 
     { amplitude    : Float,
@@ -69,18 +69,19 @@ missImage =
 update : InputSignal -> State -> State
 update inputSig (peaks, hits, misses, line, bpm, start) =
   case inputSig of
-    InitData data      -> 
+    InitData data               -> 
       (toPeakObjects data, 0, 0, line, data.bpm, data.start)
-    Click (current,b)  -> (\_ -> ((clickPeaks current start b peaks), hits, misses, line, bpm, start)) (Debug.log "clicked")
-    TimeUpdate t       -> 
+    Click (current,b)           -> 
+      ((clickPeaks current start b peaks), hits, misses, line, bpm, start)
+    TimeUpdate (current, delta) -> 
       case peaks of
         []     -> ([], hits, misses, line, bpm, start)
         p::ps  -> 
-          let timeDistance = (start + (p.timeDelta * 1000)) - t in
-          let line' = updateLine t line in
+          let timeDistance = (start + (p.timeDelta * 1000)) - current in
+          let line' = updateLine delta line in
             if timeDistance < -300 then
               if p.clicked then
-                update inputSig (ps, hits+1000, misses, line', bpm, start)
+                update inputSig (ps, hits+1, misses, line', bpm, start)
               else
                 update inputSig (ps, hits, misses+1, line', bpm, start)
             else
@@ -97,10 +98,7 @@ clickPeaks current start b peaks =
     p::ps  -> 
       let timeDistance = (start + (p.timeDelta * 1000)) - current in
         if timeDistance > -175 && timeDistance < 75 then
-            if b then
-              {p | clicked = True}::(clickPeaks current start b ps)
-            else
-              {p | clicked = False}::(clickPeaks current start b ps)
+          {p | clicked = b}::(clickPeaks current start b ps)
         else
           peaks
 
@@ -237,7 +235,7 @@ port flaaffy : Signal InitialData
 
 main : Signal Element
 main = 
-  [(Signal.map InitData flaaffy),(Signal.map Click (timestamp Keyboard.space)),(Signal.map TimeUpdate (fps 30))]
+  [(Signal.map InitData flaaffy),(Signal.map Click (timestamp Keyboard.space)),(Signal.map TimeUpdate (timestamp (fps 30)))]
     |> Signal.mergeMany
     |> Signal.foldp update initState
     |> timestamp
