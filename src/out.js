@@ -9581,28 +9581,52 @@ Elm.Main.make = function (_elm) {
       },
       data.peaks);
    };
-   var updatePeaks = F2(function (inputSig,peaks) {
+   var updatePeaks = F2(function (inputSig,_p4) {
       updatePeaks: while (true) {
-         var _p4 = inputSig;
-         if (_p4.ctor === "InitData") {
-               return toPeakObjects(_p4._0);
+         var _p5 = _p4;
+         var _p13 = _p5._0;
+         var _p12 = _p5._2;
+         var _p11 = _p5._1;
+         var _p6 = inputSig;
+         if (_p6.ctor === "InitData") {
+               return {ctor: "_Tuple3"
+                      ,_0: toPeakObjects(_p6._0)
+                      ,_1: 0
+                      ,_2: 0};
             } else {
-               var _p5 = peaks;
-               if (_p5.ctor === "[]") {
-                     return _U.list([]);
+               var _p7 = _p13;
+               if (_p7.ctor === "[]") {
+                     return {ctor: "_Tuple3",_0: _U.list([]),_1: _p11,_2: _p12};
                   } else {
-                     var _p7 = _p5._1;
-                     var _p6 = _p5._0;
-                     var timeDistance = _p6.songStart + _p6.timeDelta * 1000 - _p4._0._0;
-                     if (_U.cmp(timeDistance,-300) < 0) {
-                           var _v3 = inputSig,_v4 = _p7;
-                           inputSig = _v3;
-                           peaks = _v4;
-                           continue updatePeaks;
-                        } else if (_U.cmp(timeDistance,-175) > 0 && _U.cmp(timeDistance,
-                        75) < 0) return _p4._0._1 ? A2($List._op["::"],
-                           _U.update(_p6,{clicked: true}),
-                           A2(updatePeaks,inputSig,_p7)) : peaks; else return peaks;
+                     var _p10 = _p7._1;
+                     var _p9 = _p7._0;
+                     var timeDistance = _p9.songStart + _p9.timeDelta * 1000 - _p6._0._0;
+                     if (_U.cmp(timeDistance,-300) < 0) if (_p9.clicked) {
+                              var _v4 = inputSig,
+                              _v5 = {ctor: "_Tuple3",_0: _p10,_1: _p11 + 1,_2: _p12};
+                              inputSig = _v4;
+                              _p4 = _v5;
+                              continue updatePeaks;
+                           } else {
+                              var _v6 = inputSig,
+                              _v7 = {ctor: "_Tuple3",_0: _p10,_1: _p11,_2: _p12 + 1};
+                              inputSig = _v6;
+                              _p4 = _v7;
+                              continue updatePeaks;
+                           } else if (_U.cmp(timeDistance,-175) > 0 && _U.cmp(timeDistance,
+                        75) < 0) if (_p6._0._1) {
+                                 var _p8 = A2(updatePeaks,
+                                 inputSig,
+                                 {ctor: "_Tuple3",_0: _p10,_1: _p11,_2: _p12});
+                                 var ps$ = _p8._0;
+                                 var h = _p8._1;
+                                 var m = _p8._2;
+                                 return {ctor: "_Tuple3"
+                                        ,_0: A2($List._op["::"],_U.update(_p9,{clicked: true}),ps$)
+                                        ,_1: _p11
+                                        ,_2: _p12};
+                              } else return {ctor: "_Tuple3",_0: _p13,_1: _p11,_2: _p12};
+                        else return {ctor: "_Tuple3",_0: _p13,_1: _p11,_2: _p12};
                   }
             }
       }
@@ -9619,73 +9643,73 @@ Elm.Main.make = function (_elm) {
                ,height: 1.0 - (line.height + offset * t - 1)} : _U.update(line,
       {height: line.height + offset * t});
    });
-   var drawPeak = F6(function (_p8,
+   var drawPeak = F6(function (_p14,
    curTime,
    peak,
    timeDistance,
    line,
    r) {
-      var _p9 = _p8;
-      var _p11 = _p9._0;
-      var _p10 = _p9._1;
+      var _p15 = _p14;
+      var _p17 = _p15._0;
+      var _p16 = _p15._1;
       var futurePos = A2(update,timeDistance,line);
       var h2 = futurePos.height;
       var w2 = function () {
          var mod = A2($Basics._op["%"],
          $Basics.round(peak.timeDelta * 100),
-         2 * _p11);
+         2 * _p17);
          return _U.cmp(mod,
-         _p11) < 0 ? (_p11 / -2 | 0) + mod : (_p11 / 2 | 0) - A2($Basics._op["%"],
+         _p17) < 0 ? (_p17 / -2 | 0) + mod : (_p17 / 2 | 0) - A2($Basics._op["%"],
          mod,
-         _p11);
+         _p17);
       }();
       return peak.clicked ? A2($Graphics$Collage.move,
       {ctor: "_Tuple2"
       ,_0: $Basics.toFloat(w2)
-      ,_1: h2 * $Basics.toFloat(_p10 / 2 | 0)},
+      ,_1: h2 * $Basics.toFloat(_p16 / 2 | 0)},
       A2(drawImage,
       hitImage,
       $Basics.round(2 * r))) : _U.cmp(timeDistance,
       -175) < 0 ? A2($Graphics$Collage.move,
       {ctor: "_Tuple2"
       ,_0: $Basics.toFloat(w2)
-      ,_1: h2 * $Basics.toFloat(_p10 / 2 | 0)},
+      ,_1: h2 * $Basics.toFloat(_p16 / 2 | 0)},
       A2(drawImage,
       missImage,
       $Basics.round(2 * r))) : _U.eq(futurePos.direction,
       0) ? A2($Graphics$Collage.move,
       {ctor: "_Tuple2"
       ,_0: $Basics.toFloat(w2)
-      ,_1: h2 * $Basics.toFloat(_p10 / 2 | 0)},
+      ,_1: h2 * $Basics.toFloat(_p16 / 2 | 0)},
       A2(drawCircle,
       A4($Color.rgba,95,86,255,0.8),
       r)) : A2($Graphics$Collage.move,
       {ctor: "_Tuple2"
       ,_0: $Basics.toFloat(w2)
-      ,_1: h2 * $Basics.toFloat(_p10 / 2 | 0)},
+      ,_1: h2 * $Basics.toFloat(_p16 / 2 | 0)},
       A2(drawCircle,A4($Color.rgba,124,255,153,0.8),r));
    });
-   var drawPeaks = F4(function (_p12,curTime,p,line) {
+   var drawPeaks = F4(function (_p18,curTime,p,line) {
       drawPeaks: while (true) {
-         var _p13 = _p12;
-         var _p18 = _p13._0;
-         var _p17 = _p13._1;
-         var _p14 = p;
-         if (_p14.ctor === "[]") {
+         var _p19 = _p18;
+         var _p24 = _p19._0;
+         var _p23 = _p19._1;
+         var _p20 = p;
+         if (_p20.ctor === "[]") {
                return _U.list([]);
             } else {
-               var _p16 = _p14._1;
-               var _p15 = _p14._0;
-               var timeDistance = _p15.songStart + _p15.timeDelta * 1000 - curTime;
+               var _p22 = _p20._1;
+               var _p21 = _p20._0;
+               var timeDistance = _p21.songStart + _p21.timeDelta * 1000 - curTime;
                if (_U.cmp(timeDistance,-300) < 0) {
-                     var _v8 = {ctor: "_Tuple2",_0: _p18,_1: _p17},
-                     _v9 = curTime,
-                     _v10 = _p16,
-                     _v11 = line;
-                     _p12 = _v8;
-                     curTime = _v9;
-                     p = _v10;
-                     line = _v11;
+                     var _v11 = {ctor: "_Tuple2",_0: _p24,_1: _p23},
+                     _v12 = curTime,
+                     _v13 = _p22,
+                     _v14 = line;
+                     _p18 = _v11;
+                     curTime = _v12;
+                     p = _v13;
+                     line = _v14;
                      continue drawPeaks;
                   } else if (_U.cmp(timeDistance,700) > 0) return _U.list([]);
                   else {
@@ -9703,44 +9727,45 @@ Elm.Main.make = function (_elm) {
                         600) < 0 ? 22 : _U.cmp(timeDistance,650) < 0 ? 20 : 10;
                         return A2($List._op["::"],
                         A6(drawPeak,
-                        {ctor: "_Tuple2",_0: _p18,_1: _p17},
+                        {ctor: "_Tuple2",_0: _p24,_1: _p23},
                         curTime,
-                        _p15,
+                        _p21,
                         timeDistance,
                         line,
                         r),
                         A4(drawPeaks,
-                        {ctor: "_Tuple2",_0: _p18,_1: _p17},
+                        {ctor: "_Tuple2",_0: _p24,_1: _p23},
                         curTime,
-                        _p16,
+                        _p22,
                         line));
                      }
             }
       }
    });
-   var view = F4(function (_p20,rt,peaks,_p19) {
-      var _p21 = _p20;
-      var _p26 = _p21._0;
-      var _p25 = _p21._1;
-      var _p22 = _p19;
-      var _p24 = _p22._1;
-      var _p23 = {ctor: "_Tuple2",_0: _p26,_1: _p25 - 150};
-      var w$ = _p23._0;
-      var h$ = _p23._1;
+   var view = F4(function (_p27,rt,_p26,_p25) {
+      var _p28 = _p27;
+      var _p34 = _p28._0;
+      var _p33 = _p28._1;
+      var _p29 = _p26;
+      var _p30 = _p25;
+      var _p32 = _p30._1;
+      var _p31 = {ctor: "_Tuple2",_0: _p34,_1: _p33 - 150};
+      var w$ = _p31._0;
+      var h$ = _p31._1;
       return A3($Graphics$Collage.collage,
-      _p26,
-      _p25 - 100,
+      _p34,
+      _p33 - 100,
       A2($List._op["::"],
       linePosition({ctor: "_Tuple2"
-                   ,_0: $Basics.toFloat(_p26)
-                   ,_1: _p24.height * $Basics.toFloat(h$ / 2 | 0)}),
+                   ,_0: $Basics.toFloat(_p34)
+                   ,_1: _p32.height * $Basics.toFloat(h$ / 2 | 0)}),
       A2($List.append,
       A4(drawPeaks,
       {ctor: "_Tuple2",_0: w$,_1: h$},
-      _p22._0,
-      peaks,
-      _p24),
-      A2(drawBackground,_p26,rt))));
+      _p30._0,
+      _p29._0,
+      _p32),
+      A2(drawBackground,_p34,rt))));
    });
    var PeakObject = F3(function (a,b,c) {
       return {songStart: a,timeDelta: b,clicked: c};
@@ -9772,7 +9797,7 @@ Elm.Main.make = function (_elm) {
    ampharos,
    A3($Signal.foldp,
    updatePeaks,
-   _U.list([]),
+   {ctor: "_Tuple3",_0: _U.list([]),_1: 0,_2: 0},
    A2($Signal.merge,
    A2($Signal.map,InitData,flaaffy),
    A2($Signal.map,TimeDelta,$Time.timestamp($Keyboard.space)))),

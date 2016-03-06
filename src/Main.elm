@@ -79,25 +79,29 @@ toPeakObjects data =
   let start = data.start in
     List.map (\time -> {songStart = start, timeDelta = time, clicked = False}) data.peaks
 
-updatePeaks : InputSignal -> List PeakObject -> List PeakObject
-updatePeaks inputSig peaks =
+updatePeaks : InputSignal -> (List PeakObject, Int, Int) -> (List PeakObject, Int, Int)
+updatePeaks inputSig (peaks, hits, misses) =
   case inputSig of
-    InitData data         -> toPeakObjects data
+    InitData data -> (toPeakObjects data, 0, 0)
     TimeDelta (curTime,b) ->
       case peaks of
-        []     -> []
+        []     -> ([], hits, misses)
         p::ps -> 
           let timeDistance = (p.songStart + (p.timeDelta * 1000)) - curTime in
             if timeDistance < -300 then
-                updatePeaks inputSig ps
+                if p.clicked then
+                  updatePeaks inputSig (ps, hits+1, misses)
+                else
+                  updatePeaks inputSig (ps, hits, misses+1)
             else if timeDistance > -175 && timeDistance < 75 then
                 if b then
-                  {p | clicked = True}::(updatePeaks inputSig ps) 
+                  let (ps', h, m) = updatePeaks inputSig (ps, hits, misses) in
+                    ({p | clicked = True}::ps', hits, misses) 
                 else
-                  peaks
+                  (peaks, hits, misses)
             --Beats that are too far away
             else
-                peaks
+                (peaks, hits, misses)
 
 linePosition : (Float,Float) -> Form
 linePosition (w,h) = 
@@ -179,8 +183,8 @@ drawPeaks (w,h) curTime p line =
                 else 10 in
                   (drawPeak (w,h) curTime p' timeDistance line r)::(drawPeaks (w,h) curTime ps line)
 
-view : (Int, Int) -> RealTimeData -> List PeakObject -> (Time, State) -> Element
-view (w,h) rt peaks (t, line) =
+view : (Int, Int) -> RealTimeData -> (List PeakObject, Int, Int) -> (Time, State) -> Element
+view (w,h) rt (peaks, hits, misses) (t, line) =
   let (w',h') = (w, h-150) in
     collage w (h-100) ((linePosition (toFloat w,line.height*(toFloat (h'//2))))::
       (List.append (drawPeaks (w',h') t peaks line) (drawBackground w rt)))
@@ -217,5 +221,5 @@ port flaaffy : Signal InitialData
 
 main : Signal Element
 main = Signal.map4 view Window.dimensions ampharos 
-      (Signal.foldp updatePeaks [] (Signal.merge (Signal.map InitData flaaffy) (Signal.map TimeDelta (timestamp Keyboard.space)))) 
+      (Signal.foldp updatePeaks ([], 0, 0) (Signal.merge (Signal.map InitData flaaffy) (Signal.map TimeDelta (timestamp Keyboard.space)))) 
       (timestamp (Signal.foldp update initState (fps 30)))
