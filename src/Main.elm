@@ -74,18 +74,9 @@ update inputSig (peaks, hits, misses, line, bpm, start) =
     Click (current,b)           -> 
       ((clickPeaks current start b peaks), hits, misses, line, bpm, start)
     TimeUpdate (current, delta) -> 
-      case peaks of
-        []     -> ([], hits, misses, line, bpm, start)
-        p::ps  -> 
-          let timeDistance = (start + (p.timeDelta * 1000)) - current in
-          let line' = updateLine delta line in
-            if timeDistance < -300 then
-              if p.clicked then
-                update inputSig (ps, hits+1, misses, line', bpm, start)
-              else
-                update inputSig (ps, hits, misses+1, line', bpm, start)
-            else
-              (peaks, hits, misses, line', bpm, start)
+      let line' = updateLine delta line in
+      let (ps', hits',misses') = updateScore current (peaks, hits, misses, line, bpm, start) in
+        (ps', hits', misses', line', bpm, start)
 
 toPeakObjects : InitialData -> List PeakObject
 toPeakObjects data =
@@ -98,7 +89,10 @@ clickPeaks current start b peaks =
     p::ps  -> 
       let timeDistance = (start + (p.timeDelta * 1000)) - current in
         if timeDistance > -175 && timeDistance < 75 then
-          {p | clicked = b}::(clickPeaks current start b ps)
+          if b then
+          {p | clicked = True}::(clickPeaks current start b ps)
+          else 
+          p::(clickPeaks current start b ps)
         else
           peaks
 
@@ -116,6 +110,20 @@ updateLine t line =
         { direction = 0, height = ((1.0)-((line.height+(offset*t))-1))}
       else
         { line | height = line.height + (offset * t) }
+
+updateScore : Time -> State -> (List PeakObject, Int, Int)
+updateScore current (peaks, hits, misses, line, bpm, start) =
+  case peaks of
+      []     -> ([], hits, misses)
+      p::ps  -> 
+        let timeDistance = (start + (p.timeDelta * 1000)) - current in
+          if timeDistance < -300 then
+            if p.clicked then
+              updateScore current (ps, hits+1, misses, line, bpm, start)
+            else
+              updateScore current (ps, hits, misses+1, line, bpm, start)
+          else
+            (peaks, hits, misses)
 
 linePosition : (Float,Float) -> Form
 linePosition (w,h) = 
@@ -149,7 +157,8 @@ drawScore (w,h) hits misses =
                         ((toString hits)++" / "++(toString (hits+misses))))))))
 
 drawPeak : (Int, Int) -> PeakObject -> LineObject -> Time -> Float -> Form
-drawPeak (w,h) peak futurePos timeDistance r =
+drawPeak (w,h) peak line timeDistance r =
+  let futurePos = updateLine timeDistance line in
   let h2 = futurePos.height in        
   let w' = (w-100) in
   let w2 =
@@ -193,8 +202,7 @@ drawPeaks (w,h) current (peaks, hits, misses, line, bpm, start) =
                 else if timeDistance < 600 then 22
                 else if timeDistance < 650 then 20
                 else 10 in
-                  let futurePos = updateLine timeDistance line in
-                  (drawPeak (w,h) p futurePos timeDistance r)::(drawPeaks (w,h) current (ps, hits, misses, line, bpm, start))
+                  (drawPeak (w,h) p line timeDistance r)::(drawPeaks (w,h) current (ps, hits, misses, line, bpm, start))
 
 view : (Int, Int) -> RealTimeData ->  (Time, State) -> Element
 view (w,h) rt (t, (peaks, hits, misses, line, bpm, start)) =
