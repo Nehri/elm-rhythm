@@ -17,12 +17,17 @@ import Keyboard
 
 import Text exposing (fromString)
 
-type alias State = LineObject
+{--
+  Wrapper containing the list of peaks, 
+  number of hits, number of misses, 
+  the line, bpm, and song start time.
+--}
+type alias State = (List PeakObject, Int, Int, LineObject, Int, Time)
 
 initState : State
-initState = {direction = 0, height = 1}
+initState = ([], 0, 0, {direction = 0, height = 1}, 0, 0)
 
-type InputSignal = InitData {peaks : List Float, start : Time, bpm : Float} | TimeDelta (Time,Bool)
+type InputSignal = InitData {peaks : List Float, start : Time, bpm : Int} | Click (Time,Bool) | TimeUpdate Time
 
 type alias RealTimeData = 
     { amplitude    : Float,
@@ -36,7 +41,7 @@ type alias RealTimeData =
 type alias InitialData = 
   { peaks : List Float,
     start : Time,
-    bpm   : Float
+    bpm   : Int
   }
 
 type alias LineObject = 
@@ -45,8 +50,7 @@ type alias LineObject =
   } 
 
 type alias PeakObject = 
-  { songStart : Time,
-    timeDelta : Float,
+  { timeDelta : Float,
     clicked   : Bool
   }
 
@@ -61,8 +65,47 @@ missImage : String
 missImage =
     "http://www.clker.com/cliparts/5/9/5/4/12456868161725760927raemi_Cross_Out.svg.med.png"
 
-update : Time -> State -> State
-update t line = 
+
+update : InputSignal -> State -> State
+update inputSig (peaks, hits, misses, line, bpm, start) =
+  case inputSig of
+    InitData data      -> 
+      (toPeakObjects data, 0, 0, line, data.bpm, data.start)
+    Click (current,b)  -> (\_ -> ((clickPeaks current start b peaks), hits, misses, line, bpm, start)) (Debug.log "clicked")
+    TimeUpdate t       -> 
+      case peaks of
+        []     -> ([], hits, misses, line, bpm, start)
+        p::ps  -> 
+          let timeDistance = (start + (p.timeDelta * 1000)) - t in
+          let line' = updateLine t line in
+            if timeDistance < -300 then
+              if p.clicked then
+                update inputSig (ps, hits+1000, misses, line', bpm, start)
+              else
+                update inputSig (ps, hits, misses+1, line', bpm, start)
+            else
+              (peaks, hits, misses, line', bpm, start)
+
+toPeakObjects : InitialData -> List PeakObject
+toPeakObjects data =
+    List.map (\time -> {timeDelta = time, clicked = False}) data.peaks
+
+clickPeaks : Time -> Time -> Bool -> List PeakObject -> List PeakObject
+clickPeaks current start b peaks =
+  case peaks of
+    []     -> []
+    p::ps  -> 
+      let timeDistance = (start + (p.timeDelta * 1000)) - current in
+        if timeDistance > -175 && timeDistance < 75 then
+            if b then
+              {p | clicked = True}::(clickPeaks current start b ps)
+            else
+              {p | clicked = False}::(clickPeaks current start b ps)
+        else
+          peaks
+
+updateLine : Time -> LineObject -> LineObject
+updateLine t line = 
     --moving downwards
     if line.direction == 0 then
       if line.height-(offset*t) < -1 then
@@ -76,43 +119,9 @@ update t line =
       else
         { line | height = line.height + (offset * t) }
 
-toPeakObjects : InitialData -> List PeakObject
-toPeakObjects data =
-  let start = data.start in
-    List.map (\time -> {songStart = start, timeDelta = time, clicked = False}) data.peaks
-
-updatePeaks : InputSignal -> (List PeakObject, Int, Int) -> (List PeakObject, Int, Int)
-updatePeaks inputSig (peaks, hits, misses) =
-  case inputSig of
-    InitData data -> (toPeakObjects data, 0, 0)
-    TimeDelta (curTime,b) ->
-      case peaks of
-        []     -> ([], hits, misses)
-        p::ps -> 
-          let timeDistance = (p.songStart + (p.timeDelta * 1000)) - curTime in
-            if timeDistance < -300 then
-                if p.clicked then
-                  updatePeaks inputSig (ps, hits+1, misses)
-                else
-                  updatePeaks inputSig (ps, hits, misses+1)
-            else if timeDistance > -175 && timeDistance < 75 then
-                if b then
-                  let (ps', h, m) = updatePeaks inputSig (ps, hits, misses) in
-                    ({p | clicked = True}::ps', hits, misses) 
-                else
-                  (peaks, hits, misses)
-            --Beats that are too far away
-            else
-                (peaks, hits, misses)
-
 linePosition : (Float,Float) -> Form
 linePosition (w,h) = 
   traced { defaultLine | width = 12 } (path [(-w,h),(w, h)])
-
--- A signal that updates to the current time every second
-clock : Signal Time
-clock =
-  Time.every millisecond
 
 drawCircle : Color.Color -> Float -> Form
 drawCircle color r = 
@@ -141,10 +150,9 @@ drawScore (w,h) hits misses =
                       (fromString 
                         ((toString hits)++" / "++(toString (hits+misses))))))))
 
-drawPeak : (Int, Int) -> Time -> PeakObject -> Time -> State -> Float -> Form
-drawPeak (w,h) curTime peak timeDistance line r =        
-  let futurePos = update timeDistance line in
-  let h2 = futurePos.height in
+drawPeak : (Int, Int) -> PeakObject -> LineObject -> Time -> Float -> Form
+drawPeak (w,h) peak futurePos timeDistance r =
+  let h2 = futurePos.height in        
   let w' = (w-100) in
   let w2 =
   let mod =  ((round (peak.timeDelta * 100)) % (2*w')) in
@@ -160,19 +168,15 @@ drawPeak (w,h) curTime peak timeDistance line r =
     else
       (move (toFloat w2, h2*(toFloat (h//2))) (drawCircle (Color.rgba 124 255 153 0.8) r))
 
-drawPeaks : (Int, Int) -> Time -> List PeakObject -> State -> List Form
-drawPeaks (w,h) curTime p line =
-    case p of
+drawPeaks : (Int, Int) -> Time -> State -> List Form
+drawPeaks (w,h) current (peaks, hits, misses, line, bpm, start) =
+    case peaks of
       []     -> []
-      p'::ps -> 
-        --Skip beats that have already been clicked
-        --if p'.clicked == True then
-          --drawPeaks (w,h) curTime ps line
-        --else
-          let timeDistance = (p'.songStart + (p'.timeDelta * 1000)) - curTime in
+      p::ps  -> 
+          let timeDistance = (start + (p.timeDelta * 1000)) - current in
             --Beats that are passed
             if timeDistance < -300 then
-              drawPeaks (w,h) curTime ps line
+              drawPeaks (w,h) current (ps, hits, misses, line, bpm, start)
             --Beats that are too far away
             else if timeDistance > 700 then
               []
@@ -191,19 +195,15 @@ drawPeaks (w,h) curTime p line =
                 else if timeDistance < 600 then 22
                 else if timeDistance < 650 then 20
                 else 10 in
-                  (drawPeak (w,h) curTime p' timeDistance line r)::(drawPeaks (w,h) curTime ps line)
+                  let futurePos = updateLine timeDistance line in
+                  (drawPeak (w,h) p futurePos timeDistance r)::(drawPeaks (w,h) current (ps, hits, misses, line, bpm, start))
 
-view : (Int, Int) -> RealTimeData -> (List PeakObject, Int, Int) -> (Time, State) -> Element
-view (w,h) rt (peaks, hits, misses) (t, line) =
-  let (w',h') = (w, h-100) in
+view : (Int, Int) -> RealTimeData ->  (Time, State) -> Element
+view (w,h) rt (t, (peaks, hits, misses, line, bpm, start)) =
+  let (w',h') = (w, h-150) in
     collage w (h-100) ((linePosition (toFloat w,line.height*(toFloat (h'//2))))::
       (drawScore (toFloat w,toFloat h) hits misses)::
-      (List.append (drawPeaks (w',h') t peaks line) (drawBackground w rt)))
-
---objectToValue : RealTimeData -> Encode.Value
---objectToValue sound = 
-    --Encode.object <|
-        --[ ("amplitude", Encode.float sound.amplitude)]
+      (List.append (drawPeaks (w',h') t (peaks, hits, misses, line, bpm, start)) (drawBackground w rt)))
 
 silentMusic : RealTimeData
 silentMusic =
@@ -224,6 +224,11 @@ silentMusic =
         --    }
         --)
 
+--objectToValue : RealTimeData -> Encode.Value
+--objectToValue sound = 
+    --Encode.object <|
+        --[ ("amplitude", Encode.float sound.amplitude)]
+
 --Port that accepts real-time amplitude/frequency data from Javascript
 port ampharos : Signal RealTimeData
 
@@ -231,6 +236,9 @@ port ampharos : Signal RealTimeData
 port flaaffy : Signal InitialData
 
 main : Signal Element
-main = Signal.map4 view Window.dimensions ampharos 
-      (Signal.foldp updatePeaks ([], 0, 0) (Signal.merge (Signal.map InitData flaaffy) (Signal.map TimeDelta (timestamp Keyboard.space)))) 
-      (timestamp (Signal.foldp update initState (fps 30)))
+main = 
+  [(Signal.map InitData flaaffy),(Signal.map Click (timestamp Keyboard.space)),(Signal.map TimeUpdate (fps 30))]
+    |> Signal.mergeMany
+    |> Signal.foldp update initState
+    |> timestamp
+    |> Signal.map3 view Window.dimensions ampharos
