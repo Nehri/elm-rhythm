@@ -9650,18 +9650,18 @@ Elm.Main.make = function (_elm) {
    line,
    r) {
       var _p15 = _p14;
-      var _p17 = _p15._0;
       var _p16 = _p15._1;
       var futurePos = A2(update,timeDistance,line);
       var h2 = futurePos.height;
+      var w$ = _p15._0 - 300;
       var w2 = function () {
          var mod = A2($Basics._op["%"],
          $Basics.round(peak.timeDelta * 100),
-         2 * _p17);
+         2 * w$);
          return _U.cmp(mod,
-         _p17) < 0 ? (_p17 / -2 | 0) + mod : (_p17 / 2 | 0) - A2($Basics._op["%"],
+         w$) < 0 ? (w$ / -2 | 0) + mod : (w$ / 2 | 0) - A2($Basics._op["%"],
          mod,
-         _p17);
+         w$);
       }();
       return peak.clicked ? A2($Graphics$Collage.move,
       {ctor: "_Tuple2"
@@ -9689,24 +9689,24 @@ Elm.Main.make = function (_elm) {
       ,_1: h2 * $Basics.toFloat(_p16 / 2 | 0)},
       A2(drawCircle,A4($Color.rgba,124,255,153,0.8),r));
    });
-   var drawPeaks = F4(function (_p18,curTime,p,line) {
+   var drawPeaks = F4(function (_p17,curTime,p,line) {
       drawPeaks: while (true) {
-         var _p19 = _p18;
-         var _p24 = _p19._0;
-         var _p23 = _p19._1;
-         var _p20 = p;
-         if (_p20.ctor === "[]") {
+         var _p18 = _p17;
+         var _p23 = _p18._0;
+         var _p22 = _p18._1;
+         var _p19 = p;
+         if (_p19.ctor === "[]") {
                return _U.list([]);
             } else {
-               var _p22 = _p20._1;
-               var _p21 = _p20._0;
-               var timeDistance = _p21.songStart + _p21.timeDelta * 1000 - curTime;
+               var _p21 = _p19._1;
+               var _p20 = _p19._0;
+               var timeDistance = _p20.songStart + _p20.timeDelta * 1000 - curTime;
                if (_U.cmp(timeDistance,-300) < 0) {
-                     var _v11 = {ctor: "_Tuple2",_0: _p24,_1: _p23},
+                     var _v11 = {ctor: "_Tuple2",_0: _p23,_1: _p22},
                      _v12 = curTime,
-                     _v13 = _p22,
+                     _v13 = _p21,
                      _v14 = line;
-                     _p18 = _v11;
+                     _p17 = _v11;
                      curTime = _v12;
                      p = _v13;
                      line = _v14;
@@ -9727,45 +9727,45 @@ Elm.Main.make = function (_elm) {
                         600) < 0 ? 22 : _U.cmp(timeDistance,650) < 0 ? 20 : 10;
                         return A2($List._op["::"],
                         A6(drawPeak,
-                        {ctor: "_Tuple2",_0: _p24,_1: _p23},
+                        {ctor: "_Tuple2",_0: _p23,_1: _p22},
                         curTime,
-                        _p21,
+                        _p20,
                         timeDistance,
                         line,
                         r),
                         A4(drawPeaks,
-                        {ctor: "_Tuple2",_0: _p24,_1: _p23},
+                        {ctor: "_Tuple2",_0: _p23,_1: _p22},
                         curTime,
-                        _p22,
+                        _p21,
                         line));
                      }
             }
       }
    });
-   var view = F4(function (_p27,rt,_p26,_p25) {
-      var _p28 = _p27;
-      var _p34 = _p28._0;
-      var _p33 = _p28._1;
-      var _p29 = _p26;
-      var _p30 = _p25;
-      var _p32 = _p30._1;
-      var _p31 = {ctor: "_Tuple2",_0: _p34,_1: _p33 - 150};
-      var w$ = _p31._0;
-      var h$ = _p31._1;
+   var view = F4(function (_p26,rt,_p25,_p24) {
+      var _p27 = _p26;
+      var _p33 = _p27._0;
+      var _p32 = _p27._1;
+      var _p28 = _p25;
+      var _p29 = _p24;
+      var _p31 = _p29._1;
+      var _p30 = {ctor: "_Tuple2",_0: _p33,_1: _p32 - 500};
+      var w$ = _p30._0;
+      var h$ = _p30._1;
       return A3($Graphics$Collage.collage,
-      _p34,
-      _p33 - 100,
+      _p33,
+      _p32 - 100,
       A2($List._op["::"],
       linePosition({ctor: "_Tuple2"
-                   ,_0: $Basics.toFloat(_p34)
-                   ,_1: _p32.height * $Basics.toFloat(h$ / 2 | 0)}),
+                   ,_0: $Basics.toFloat(_p33)
+                   ,_1: _p31.height * $Basics.toFloat(h$ / 2 | 0)}),
       A2($List.append,
       A4(drawPeaks,
       {ctor: "_Tuple2",_0: w$,_1: h$},
-      _p30._0,
       _p29._0,
-      _p32),
-      A2(drawBackground,_p34,rt))));
+      _p28._0,
+      _p31),
+      A2(drawBackground,_p33,rt))));
    });
    var PeakObject = F3(function (a,b,c) {
       return {songStart: a,timeDelta: b,clicked: c};

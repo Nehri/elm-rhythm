@@ -133,13 +133,14 @@ drawBackground w rt =
   ]
 
 drawPeak : (Int, Int) -> Time -> PeakObject -> Time -> State -> Float -> Form
-drawPeak (w,h) curTime peak timeDistance line r =
+drawPeak (w,h) curTime peak timeDistance line r =        
   let futurePos = update timeDistance line in
   let h2 = futurePos.height in
+  let w' = (w-100) in
   let w2 =
-  let mod =  ((round (peak.timeDelta * 100)) % (2*w)) in
-    if mod < w then (w//(-2)) + mod
-    else (w//2) - (mod%w)
+  let mod =  ((round (peak.timeDelta * 100)) % (2*w')) in
+    if mod < w' then (w'//(-2)) + mod
+    else (w'//2) - (mod%w')
   in
     if peak.clicked then
       (move (toFloat w2, h2*(toFloat (h//2))) (drawImage hitImage (round (2*r))))
@@ -185,7 +186,7 @@ drawPeaks (w,h) curTime p line =
 
 view : (Int, Int) -> RealTimeData -> (List PeakObject, Int, Int) -> (Time, State) -> Element
 view (w,h) rt (peaks, hits, misses) (t, line) =
-  let (w',h') = (w, h-150) in
+  let (w',h') = (w, h-100) in
     collage w (h-100) ((linePosition (toFloat w,line.height*(toFloat (h'//2))))::
       (List.append (drawPeaks (w',h') t peaks line) (drawBackground w rt)))
 
