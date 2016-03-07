@@ -18,37 +18,6 @@ Elm.Main.make = function (_elm) {
    $Time = Elm.Time.make(_elm),
    $Window = Elm.Window.make(_elm);
    var _op = {};
-   var flaaffy = Elm.Native.Port.make(_elm).inboundSignal("flaaffy",
-   "Main.InitialData",
-   function (v) {
-      return typeof v === "object" && "peaks" in v && "start" in v && "bpm" in v ? {_: {}
-                                                                                   ,peaks: typeof v.peaks === "object" && v.peaks instanceof Array ? Elm.Native.List.make(_elm).fromArray(v.peaks.map(function (v) {
-                                                                                      return typeof v === "number" ? v : _U.badPort("a number",v);
-                                                                                   })) : _U.badPort("an array",v.peaks)
-                                                                                   ,start: typeof v.start === "number" ? v.start : _U.badPort("a number",
-                                                                                   v.start)
-                                                                                   ,bpm: typeof v.bpm === "number" && isFinite(v.bpm) && Math.floor(v.bpm) === v.bpm ? v.bpm : _U.badPort("an integer",
-                                                                                   v.bpm)} : _U.badPort("an object with fields `peaks`, `start`, `bpm`",
-      v);
-   });
-   var ampharos = Elm.Native.Port.make(_elm).inboundSignal("ampharos",
-   "Main.RealTimeData",
-   function (v) {
-      return typeof v === "object" && "amplitude" in v && "bass_energy" in v && "low_energy" in v && "mid_energy" in v && "high_energy" in v && "treble_energy" in v ? {_: {}
-                                                                                                                                                                       ,amplitude: typeof v.amplitude === "number" ? v.amplitude : _U.badPort("a number",
-                                                                                                                                                                       v.amplitude)
-                                                                                                                                                                       ,bass_energy: typeof v.bass_energy === "number" ? v.bass_energy : _U.badPort("a number",
-                                                                                                                                                                       v.bass_energy)
-                                                                                                                                                                       ,low_energy: typeof v.low_energy === "number" ? v.low_energy : _U.badPort("a number",
-                                                                                                                                                                       v.low_energy)
-                                                                                                                                                                       ,mid_energy: typeof v.mid_energy === "number" ? v.mid_energy : _U.badPort("a number",
-                                                                                                                                                                       v.mid_energy)
-                                                                                                                                                                       ,high_energy: typeof v.high_energy === "number" ? v.high_energy : _U.badPort("a number",
-                                                                                                                                                                       v.high_energy)
-                                                                                                                                                                       ,treble_energy: typeof v.treble_energy === "number" ? v.treble_energy : _U.badPort("a number",
-                                                                                                                                                                       v.treble_energy)} : _U.badPort("an object with fields `amplitude`, `bass_energy`, `low_energy`, `mid_energy`, `high_energy`, `treble_energy`",
-      v);
-   });
    var silentMusic = {amplitude: 0.0
                      ,bass_energy: 0.0
                      ,low_energy: 0.0
@@ -156,6 +125,18 @@ Elm.Main.make = function (_elm) {
             }
       }
    });
+   var updateLine = F2(function (delta,line) {
+      return _U.eq(line.direction,
+      0) ? _U.cmp(line.height - line.speed * delta,
+      -1) < 0 ? _U.update(line,
+      {direction: 1
+      ,height: -1.0 - (line.height - line.speed * delta + 1)}) : _U.update(line,
+      {height: line.height - line.speed * delta}) : _U.cmp(line.height + line.speed * delta,
+      1) > 0 ? _U.update(line,
+      {direction: 0
+      ,height: 1.0 - (line.height + line.speed * delta - 1)}) : _U.update(line,
+      {height: line.height + line.speed * delta});
+   });
    var clickPeaks = F4(function (current,start,b,peaks) {
       var _p17 = peaks;
       if (_p17.ctor === "[]") {
@@ -179,18 +160,6 @@ Elm.Main.make = function (_elm) {
       },
       data.peaks);
    };
-   var missImage = "http://www.clker.com/cliparts/5/9/5/4/12456868161725760927raemi_Cross_Out.svg.med.png";
-   var hitImage = "https://uxtraining.com/assets/UX2-f717a856d969481dceffd400d6cfaf2c.png";
-   var offset = 2 / 1800;
-   var updateLine = F2(function (t,line) {
-      return _U.eq(line.direction,
-      0) ? _U.cmp(line.height - offset * t,-1) < 0 ? {direction: 1
-                                                     ,height: -1.0 - (line.height - offset * t + 1)} : _U.update(line,
-      {height: line.height - offset * t}) : _U.cmp(line.height + offset * t,
-      1) > 0 ? {direction: 0
-               ,height: 1.0 - (line.height + offset * t - 1)} : _U.update(line,
-      {height: line.height + offset * t});
-   });
    var update = F2(function (inputSig,_p20) {
       var _p21 = _p20;
       var _p30 = _p21._5;
@@ -202,11 +171,13 @@ Elm.Main.make = function (_elm) {
       var _p22 = inputSig;
       switch (_p22.ctor)
       {case "InitData": var _p23 = _p22._0;
+           var speed = 0.5 * $Basics.toFloat(_p23.bpm) / 60000.0;
+           var line$ = _U.update(_p27,{speed: speed});
            return {ctor: "_Tuple6"
                   ,_0: toPeakObjects(_p23)
                   ,_1: 0
                   ,_2: 0
-                  ,_3: _p27
+                  ,_3: line$
                   ,_4: _p23.bpm
                   ,_5: _p23.start};
          case "Click": return {ctor: "_Tuple6"
@@ -237,6 +208,39 @@ Elm.Main.make = function (_elm) {
                   ,_4: _p25
                   ,_5: _p30};}
    });
+   var flaaffy = Elm.Native.Port.make(_elm).inboundSignal("flaaffy",
+   "Main.InitialData",
+   function (v) {
+      return typeof v === "object" && "peaks" in v && "start" in v && "bpm" in v ? {_: {}
+                                                                                   ,peaks: typeof v.peaks === "object" && v.peaks instanceof Array ? Elm.Native.List.make(_elm).fromArray(v.peaks.map(function (v) {
+                                                                                      return typeof v === "number" ? v : _U.badPort("a number",v);
+                                                                                   })) : _U.badPort("an array",v.peaks)
+                                                                                   ,start: typeof v.start === "number" ? v.start : _U.badPort("a number",
+                                                                                   v.start)
+                                                                                   ,bpm: typeof v.bpm === "number" && isFinite(v.bpm) && Math.floor(v.bpm) === v.bpm ? v.bpm : _U.badPort("an integer",
+                                                                                   v.bpm)} : _U.badPort("an object with fields `peaks`, `start`, `bpm`",
+      v);
+   });
+   var ampharos = Elm.Native.Port.make(_elm).inboundSignal("ampharos",
+   "Main.RealTimeData",
+   function (v) {
+      return typeof v === "object" && "amplitude" in v && "bass_energy" in v && "low_energy" in v && "mid_energy" in v && "high_energy" in v && "treble_energy" in v ? {_: {}
+                                                                                                                                                                       ,amplitude: typeof v.amplitude === "number" ? v.amplitude : _U.badPort("a number",
+                                                                                                                                                                       v.amplitude)
+                                                                                                                                                                       ,bass_energy: typeof v.bass_energy === "number" ? v.bass_energy : _U.badPort("a number",
+                                                                                                                                                                       v.bass_energy)
+                                                                                                                                                                       ,low_energy: typeof v.low_energy === "number" ? v.low_energy : _U.badPort("a number",
+                                                                                                                                                                       v.low_energy)
+                                                                                                                                                                       ,mid_energy: typeof v.mid_energy === "number" ? v.mid_energy : _U.badPort("a number",
+                                                                                                                                                                       v.mid_energy)
+                                                                                                                                                                       ,high_energy: typeof v.high_energy === "number" ? v.high_energy : _U.badPort("a number",
+                                                                                                                                                                       v.high_energy)
+                                                                                                                                                                       ,treble_energy: typeof v.treble_energy === "number" ? v.treble_energy : _U.badPort("a number",
+                                                                                                                                                                       v.treble_energy)} : _U.badPort("an object with fields `amplitude`, `bass_energy`, `low_energy`, `mid_energy`, `high_energy`, `treble_energy`",
+      v);
+   });
+   var missImage = "http://www.clker.com/cliparts/5/9/5/4/12456868161725760927raemi_Cross_Out.svg.med.png";
+   var hitImage = "https://uxtraining.com/assets/UX2-f717a856d969481dceffd400d6cfaf2c.png";
    var drawPeak = F5(function (_p31,peak,line,timeDistance,r) {
       var _p32 = _p31;
       var _p33 = _p32._1;
@@ -386,8 +390,8 @@ Elm.Main.make = function (_elm) {
    var PeakObject = F2(function (a,b) {
       return {timeDelta: a,clicked: b};
    });
-   var LineObject = F2(function (a,b) {
-      return {direction: a,height: b};
+   var LineObject = F3(function (a,b,c) {
+      return {direction: a,height: b,speed: c};
    });
    var InitialData = F3(function (a,b,c) {
       return {peaks: a,start: b,bpm: c};
@@ -411,7 +415,7 @@ Elm.Main.make = function (_elm) {
                    ,_0: _U.list([])
                    ,_1: 0
                    ,_2: 0
-                   ,_3: {direction: 0,height: 1}
+                   ,_3: {direction: 0,height: 1,speed: 0}
                    ,_4: 0
                    ,_5: 0};
    var main = A4($Signal.map3,
@@ -435,7 +439,6 @@ Elm.Main.make = function (_elm) {
                              ,InitialData: InitialData
                              ,LineObject: LineObject
                              ,PeakObject: PeakObject
-                             ,offset: offset
                              ,hitImage: hitImage
                              ,missImage: missImage
                              ,update: update
@@ -451,6 +454,6 @@ Elm.Main.make = function (_elm) {
                              ,drawPeak: drawPeak
                              ,drawPeaks: drawPeaks
                              ,view: view
-                             ,silentMusic: silentMusic
-                             ,main: main};
+                             ,main: main
+                             ,silentMusic: silentMusic};
 };
