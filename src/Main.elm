@@ -25,7 +25,7 @@ import Text exposing (fromString)
 type alias State = (List PeakObject, Int, Int, LineObject, Int, Time)
 
 initState : State
-initState = ([], 0, 0, {direction = 0, height = 1}, 0, 0)
+initState = ([], 0, 0, {direction = 0, height = 1, speed = 0}, 0, 0)
 
 type InputSignal = InitData {peaks : List Float, start : Time, bpm : Int} | Click (Time,Bool) | TimeUpdate (Time, Time)
 
@@ -46,16 +46,14 @@ type alias InitialData =
 
 type alias LineObject = 
   { direction : Int,
-    height    : Float
+    height    : Float,
+    speed     : Float,
   } 
 
 type alias PeakObject = 
   { timeDelta : Float,
     clicked   : Bool
   }
-
-offset : Float
-offset = 2/1800
 
 hitImage : String
 hitImage = 
@@ -74,7 +72,7 @@ update inputSig (peaks, hits, misses, line, bpm, start) =
     Click (current,b)           -> 
       ((clickPeaks current start b peaks), hits, misses, line, bpm, start)
     TimeUpdate (current, delta) -> 
-      let line' = updateLine delta line in
+      let line' = updateLine bpm delta line in
       let (ps', hits',misses') = updateScore current (peaks, hits, misses, line, bpm, start) in
         (ps', hits', misses', line', bpm, start)
 
@@ -96,20 +94,22 @@ clickPeaks current start b peaks =
         else
           peaks
 
-updateLine : Time -> LineObject -> LineObject
-updateLine t line = 
-    --moving downwards
-    if line.direction == 0 then
-      if line.height-(offset*t) < -1 then
-        { direction = 1, height = ((-1.0)-((line.height-(offset*t))+1))}
+updateLine : Int -> Time -> LineObject -> LineObject
+updateLine bpm delta line =
+    --let speed = 2/1800
+    let speed = (2.0*(toFloat bpm)) / 60000.0 in
+      --moving downwards
+      if line.direction == 0 then
+        if line.height-(speed*delta) < -1 then
+          { direction = 1, height = ((-1.0)-((line.height-(speed*delta))+1))}
+        else
+          { line | height = line.height - (speed * delta) }
+      --moving upwards
       else
-        { line | height = line.height - (offset * t) }
-    --moving upwards
-    else
-      if line.height+(offset*t) > 1 then
-        { direction = 0, height = ((1.0)-((line.height+(offset*t))-1))}
-      else
-        { line | height = line.height + (offset * t) }
+        if line.height+(speed*delta) > 1 then
+          { direction = 0, height = ((1.0)-((line.height+(speed*delta))-1))}
+        else
+          { line | height = line.height + (speed * delta) }
 
 updateScore : Time -> State -> (List PeakObject, Int, Int)
 updateScore current (peaks, hits, misses, line, bpm, start) =
@@ -158,8 +158,8 @@ drawScore (w,h) hits misses =
 
 drawPeak : (Int, Int) -> PeakObject -> LineObject -> Time -> Float -> Form
 drawPeak (w,h) peak line timeDistance r =
-  let futurePos = updateLine timeDistance line in
-  let h2 = futurePos.height in        
+  let futurePos = updateLine bpm timeDistance line in
+  let h2 = futurePos.height in      
   let w' = (w-100) in
   let w2 =
   let mod =  ((round (peak.timeDelta * 100)) % (2*w')) in
