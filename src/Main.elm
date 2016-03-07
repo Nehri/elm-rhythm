@@ -1,21 +1,32 @@
+----------------------------------------------------------------------------------------------
+--                                                                                          --
+--                                                                                          --
+--                                          Imports                                         --             
+--                                                                                          --
+--                                                                                          --
+----------------------------------------------------------------------------------------------
+
 module Main where
 
-import Graphics.Element exposing (show)
-import Task exposing (Task)
-import Time exposing (millisecond, second, minute, Time, fps, timestamp)
-
-import Graphics.Element exposing (show, flow, Element, image)
-import Graphics.Collage exposing (Form, collage, toForm, filled, circle, move, moveX, moveY, traced, defaultLine, path, ngon, text)
-
-import Json.Encode as Encode
-import Json.Decode as Decode exposing ((:=), Decoder)
+import Time exposing (Time, fps, timestamp)
+import Graphics.Element as E
+import Graphics.Collage as C exposing (defaultLine)
+import Text exposing (fromString)
 
 import Signal
 import Window
 import Color
 import Keyboard
 
-import Text exposing (fromString)
+
+
+----------------------------------------------------------------------------------------------
+--                                                                                          --
+--                                                                                          --
+--                                      Type Defintions                                     --             
+--                                                                                          --
+--                                                                                          --
+----------------------------------------------------------------------------------------------
 
 {--
   Wrapper containing the list of peaks, 
@@ -27,10 +38,20 @@ type alias State = (List PeakObject, Int, Int, LineObject, Int, Time)
 initState : State
 initState = ([], 0, 0, {direction = 0, height = 1}, 0, 0)
 
-type InputSignal = InitData {peaks : List Float, start : Time, bpm : Int} | Click (Time,Bool) | TimeUpdate (Time, Time)
+{--
+  Merged signals relating to user input and peak analysis.
+--}
+type InputSignal = InitData {peaks : List Float, start : Time, bpm : Int} 
+                 | Click (Time,Bool) 
+                 | TimeUpdate (Time, Time)
 
+{--
+  The per-second analysis data that is shown in the background,
+  separate from the peak analysis, received from Javascript.
+--}
 type alias RealTimeData = 
-    { amplitude    : Float,
+    { 
+      amplitude    : Float,
       bass_energy  : Float,
       low_energy   : Float,
       mid_energy   : Float,
@@ -38,21 +59,41 @@ type alias RealTimeData =
       treble_energy: Float
     }
 
+{--
+  Peak analysis data sent just once from the Javascript side.
+--}
 type alias InitialData = 
-  { peaks : List Float,
+  { 
+    peaks : List Float,
     start : Time,
     bpm   : Int
   }
 
+{--
+  Wrapper for the moving line on the page.
+--}
 type alias LineObject = 
-  { direction : Int,
+  { 
+    direction : Int,
     height    : Float
   } 
 
+{--
+  Wrapper for each peak found in a song.
+--}
 type alias PeakObject = 
-  { timeDelta : Float,
+  { 
+    timeDelta : Float,
     clicked   : Bool
   }
+
+----------------------------------------------------------------------------------------------
+--                                                                                          --
+--                                                                                          --
+--                                           Constants                                      --             
+--                                                                                          --
+--                                                                                          --
+----------------------------------------------------------------------------------------------
 
 offset : Float
 offset = 2/1800
@@ -65,7 +106,44 @@ missImage : String
 missImage =
     "http://www.clker.com/cliparts/5/9/5/4/12456868161725760927raemi_Cross_Out.svg.med.png"
 
+----------------------------------------------------------------------------------------------
+--                                                                                          --
+--                                                                                          --
+--                                            Ports                                         --             
+--                                                                                          --
+--                                                                                          --
+----------------------------------------------------------------------------------------------
 
+{--
+  Port that accepts real-time amplitude/frequency data from Javascript.
+  Named after the Lighthouse Pokemon, Ampharos : 
+    http://static.zerochan.net/Ampharos.full.1491150.jpg
+--}
+port ampharos : Signal RealTimeData
+
+{--
+  Port that accepts timing and peak info once at the beginning of runtime.
+  Named after the Sheep Pokemon, Flaaffy : 
+    http://rs1129.pbsrc.com/albums/m509/2ne1dunsparce/Pokemon/Flaaffy.jpg~c200
+--}
+port flaaffy : Signal InitialData
+
+----------------------------------------------------------------------------------------------
+--                                                                                          --
+--                                                                                          --
+--                                     State Update Functions                               --             
+--                                                                                          --
+--                                                                                          --
+----------------------------------------------------------------------------------------------
+
+{--
+  Updates the state based on the signal received.
+  With a signal of:
+    InitData   -> Saves the data into the state to start the game.
+    Click      -> Sets relevant peaks to clicked
+    TimeUpdate -> Updates the score and deletes past peaks from the 
+      front of the list
+--}
 update : InputSignal -> State -> State
 update inputSig (peaks, hits, misses, line, bpm, start) =
   case inputSig of
@@ -78,10 +156,17 @@ update inputSig (peaks, hits, misses, line, bpm, start) =
       let (ps', hits',misses') = updateScore current (peaks, hits, misses, line, bpm, start) in
         (ps', hits', misses', line', bpm, start)
 
+{--
+  Turns the TimeDeltas (Floats) received from Javascript into PeakObjects
+--}
 toPeakObjects : InitialData -> List PeakObject
 toPeakObjects data =
     List.map (\time -> {timeDelta = time, clicked = False}) data.peaks
 
+{--
+  Checks if the time the key was pressed coincides with any peaks and
+  updates them accordingly.
+--}
 clickPeaks : Time -> Time -> Bool -> List PeakObject -> List PeakObject
 clickPeaks current start b peaks =
   case peaks of
@@ -96,6 +181,10 @@ clickPeaks current start b peaks =
         else
           peaks
 
+{--
+  Draws the line in a new position as a function of time. Reverses the
+  direction if the line hits the top or bottom.
+--}
 updateLine : Time -> LineObject -> LineObject
 updateLine t line = 
     --moving downwards
@@ -111,6 +200,10 @@ updateLine t line =
       else
         { line | height = line.height + (offset * t) }
 
+{--
+  Adds points to the hit or miss lists according to if past peaks were
+  hit or missed before removing those peaks from the list.
+--}
 updateScore : Time -> State -> (List PeakObject, Int, Int)
 updateScore current (peaks, hits, misses, line, bpm, start) =
   case peaks of
@@ -125,38 +218,66 @@ updateScore current (peaks, hits, misses, line, bpm, start) =
           else
             (peaks, hits, misses)
 
-linePosition : (Float,Float) -> Form
+----------------------------------------------------------------------------------------------
+--                                                                                          --
+--                                                                                          --
+--                                     Drawing Functions                                    --             
+--                                                                                          --
+--                                                                                          --
+----------------------------------------------------------------------------------------------
+
+{--
+  Draws a thick black line across the width of the screen.
+--}
+linePosition : (Float,Float) -> C.Form
 linePosition (w,h) = 
-  traced { defaultLine | width = 12 } (path [(-w,h),(w, h)])
+  C.traced { defaultLine | width = 12 } (C.path [(-w,h),(w, h)])
 
-drawCircle : Color.Color -> Float -> Form
+{--
+  Draws a coloured dot to represent a peak.
+--}
+drawCircle : Color.Color -> Float -> C.Form
 drawCircle color r = 
-  filled color (circle r)
+  C.filled color (C.circle r)
 
-drawImage : String -> Int -> Form
+{--
+  Draws an image repesenting a hit or missed peak.
+--}
+drawImage : String -> Int -> C.Form
 drawImage url r =
     url
-    |> image r r
-    |> toForm
+    |> E.image r r
+    |> C.toForm
 
-drawBackground : Int -> RealTimeData -> List Form
+{--
+  Draws 5 transparent circles in the background to represent different frequency
+  ranges in the song.
+--}
+drawBackground : Int -> RealTimeData -> List C.Form
 drawBackground w rt =
   [
-    ( moveX (toFloat (-1*(w//3))) (drawCircle (Color.rgba 0 52 48 0.05) rt.bass_energy) ),
-    ( moveX (toFloat (-1*(w//6))) (drawCircle (Color.rgba 13 78 73 0.05) rt.low_energy) ),
-    ( moveX 0.0                   (drawCircle (Color.rgba 35 104 99 0.05) rt.mid_energy) ),
-    ( moveX (toFloat (w//6))      (drawCircle (Color.rgba 65 131 126 0.05) rt.high_energy) ),
-    ( moveX (toFloat (w//3))      (drawCircle (Color.rgba 105 157 153 0.05) rt.treble_energy) )
+    ( C.moveX (toFloat (-1*(w//3))) (drawCircle (Color.rgba 0 52 48 0.05) rt.bass_energy) ),
+    ( C.moveX (toFloat (-1*(w//6))) (drawCircle (Color.rgba 13 78 73 0.05) rt.low_energy) ),
+    ( C.moveX 0.0                   (drawCircle (Color.rgba 35 104 99 0.05) rt.mid_energy) ),
+    ( C.moveX (toFloat (w//6))      (drawCircle (Color.rgba 65 131 126 0.05) rt.high_energy) ),
+    ( C.moveX (toFloat (w//3))      (drawCircle (Color.rgba 105 157 153 0.05) rt.treble_energy) )
   ]
 
-drawScore : (Float, Float) -> Int -> Int -> Form
+{--
+  Adds the current score to the top right corner of the screen.
+--}
+drawScore : (Float, Float) -> Int -> Int -> C.Form
 drawScore (w,h) hits misses =
-  move (w/2-100,h/2-100) (text 
+  C.move (w/2-100,h/2-100) (C.text 
     (Text.typeface ["avant garde", "arial"] (Text.height 30 (Text.color (Color.rgba 138 0 94 0.5) 
                       (fromString 
                         ((toString hits)++" / "++(toString (hits+misses))))))))
 
-drawPeak : (Int, Int) -> PeakObject -> LineObject -> Time -> Float -> Form
+{--
+  Draws a dot ahead of time in the position the line will be in at the time 
+  the peak happens in the music.
+--}
+drawPeak : (Int, Int) -> PeakObject -> LineObject -> Time -> Float -> C.Form
 drawPeak (w,h) peak line timeDistance r =
   let futurePos = updateLine timeDistance line in
   let h2 = futurePos.height in        
@@ -167,15 +288,18 @@ drawPeak (w,h) peak line timeDistance r =
     else (w'//2) - (mod%w')
   in
     if peak.clicked then
-      (move (toFloat w2, h2*(toFloat (h//2))) (drawImage hitImage (round (2*r))))
+      (C.move (toFloat w2, h2*(toFloat (h//2))) (drawImage hitImage (round (2*r))))
     else if timeDistance < -175 then
-      (move (toFloat w2, h2*(toFloat (h//2))) (drawImage missImage (round (2*r))))
+      (C.move (toFloat w2, h2*(toFloat (h//2))) (drawImage missImage (round (2*r))))
     else if futurePos.direction == 0 then
-      (move (toFloat w2, h2*(toFloat (h//2))) (drawCircle (Color.rgba 95 86 255 0.8) r))
+      (C.move (toFloat w2, h2*(toFloat (h//2))) (drawCircle (Color.rgba 95 86 255 0.8) r))
     else
-      (move (toFloat w2, h2*(toFloat (h//2))) (drawCircle (Color.rgba 124 255 153 0.8) r))
+      (C.move (toFloat w2, h2*(toFloat (h//2))) (drawCircle (Color.rgba 124 255 153 0.8) r))
 
-drawPeaks : (Int, Int) -> Time -> State -> List Form
+{--
+  Cycles through the peaks in the state and draws any that will be happening soon.
+--}
+drawPeaks : (Int, Int) -> Time -> State -> List C.Form
 drawPeaks (w,h) current (peaks, hits, misses, line, bpm, start) =
     case peaks of
       []     -> []
@@ -204,13 +328,48 @@ drawPeaks (w,h) current (peaks, hits, misses, line, bpm, start) =
                 else 10 in
                   (drawPeak (w,h) p line timeDistance r)::(drawPeaks (w,h) current (ps, hits, misses, line, bpm, start))
 
-view : (Int, Int) -> RealTimeData ->  (Time, State) -> Element
+{--
+  Adds the score, line, dots, and background circles together for the page.
+--}
+view : (Int, Int) -> RealTimeData ->  (Time, State) -> E.Element
 view (w,h) rt (t, (peaks, hits, misses, line, bpm, start)) =
   let (w',h') = (w, h-150) in
-    collage w (h-100) ((linePosition (toFloat w,line.height*(toFloat (h'//2))))::
+    C.collage w (h-100) ((linePosition (toFloat w,line.height*(toFloat (h'//2))))::
       (drawScore (toFloat w,toFloat h) hits misses)::
       (List.append (drawPeaks (w',h') t (peaks, hits, misses, line, bpm, start)) (drawBackground w rt)))
 
+----------------------------------------------------------------------------------------------
+--                                                                                          --
+--                                                                                          --
+--                                            Main                                          --             
+--                                                                                          --
+--                                                                                          --
+----------------------------------------------------------------------------------------------
+
+{--
+  Merges signals from various inputs to update state and pass both real-time and past-dependent
+  data to be output to the screen.
+--}
+main : Signal E.Element
+main = 
+  [(Signal.map InitData flaaffy),(Signal.map Click (timestamp Keyboard.space)),(Signal.map TimeUpdate (timestamp (fps 30)))]
+    |> Signal.mergeMany
+    |> Signal.foldp update initState
+    |> timestamp
+    |> Signal.map3 view Window.dimensions ampharos
+
+
+----------------------------------------------------------------------------------------------
+--                                                                                          --
+--                                                                                          --
+--                                    Deprecated Functions                                  --             
+--                                                                                          --
+--                                                                                          --
+----------------------------------------------------------------------------------------------
+
+{--
+  An initial value for the data received from port Ampharos.
+--}
 silentMusic : RealTimeData
 silentMusic =
     { amplitude = 0.0,
@@ -221,30 +380,26 @@ silentMusic =
       treble_energy = 0.0
     }
 
---floatToObject : Decoder RealTimeData
---floatToObject = 
-    --let soundDecoder = Decode.object1 RealTimeData ("amplitude" := Decode.float) in
-    --Decode.customDecoder soundDecoder
-        --(\sound ->
-        --    Ok { silentMusic | amplitude = sound.amplitude
-        --    }
-        --)
+{--
+  Decodes the amplitude from JSON received from port Ampharos.
+--}
+{--
+floatToObject : Decoder RealTimeData
+floatToObject = 
+    let soundDecoder = Decode.object1 RealTimeData ("amplitude" := Decode.float) in
+    Decode.customDecoder soundDecoder
+        (\sound ->
+            Ok { silentMusic | amplitude = sound.amplitude
+            }
+        )
+--}
 
---objectToValue : RealTimeData -> Encode.Value
---objectToValue sound = 
-    --Encode.object <|
-        --[ ("amplitude", Encode.float sound.amplitude)]
-
---Port that accepts real-time amplitude/frequency data from Javascript
-port ampharos : Signal RealTimeData
-
---Port that accepts time and peak info once at the beginning of runtime
-port flaaffy : Signal InitialData
-
-main : Signal Element
-main = 
-  [(Signal.map InitData flaaffy),(Signal.map Click (timestamp Keyboard.space)),(Signal.map TimeUpdate (timestamp (fps 30)))]
-    |> Signal.mergeMany
-    |> Signal.foldp update initState
-    |> timestamp
-    |> Signal.map3 view Window.dimensions ampharos
+{--
+  Encodes an amplitude value into the JSON sent to Javascript.
+--}
+{--
+objectToValue : RealTimeData -> Encode.Value
+objectToValue sound = 
+    Encode.object <|
+        [ ("amplitude", Encode.float sound.amplitude)]
+--}
