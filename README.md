@@ -4,6 +4,7 @@ A rhythm-game generator in Elm using real-time audio
 How to run:
 
 If using Mac OS:
+
 	Run the HTML directly:
 		1) Change into the src/ directory.
 		2) Open the out.html file in Firefox.
@@ -16,6 +17,7 @@ If using Mac OS:
 
 
 If using Linux (Ubuntu):
+
 	By script:
 		1) Stay in the root directory (same folder as update.txt)
 		2) Enter '.\run.sh' in the terminal.
@@ -29,6 +31,7 @@ If using Linux (Ubuntu):
 
 
 If using Windows or as a default:
+
 	Run the HTML directly:
 		1) Change into the src\ directory.
 		2) Open the out.html file in Firefox.
