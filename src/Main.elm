@@ -182,6 +182,10 @@ clickPeaks current start b peaks =
         else
           peaks
 
+{--
+  Updates the line height based on how much time has passed since the last
+  time signal was received.
+--}
 updateLine : Time -> LineObject -> LineObject
 updateLine delta line =
   --moving downwards
