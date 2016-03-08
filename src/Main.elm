@@ -202,6 +202,10 @@ clickPeak current start peak =
     else 
       {peak | penaltyCount = peak.penaltyCount + 1}
 
+{--
+  Updates the line height based on how much time has passed since the last
+  time signal was received.
+--}
 updateLine : Time -> LineObject -> LineObject
 updateLine delta line =
   --moving downwards
