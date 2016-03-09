@@ -1,28 +1,79 @@
-Instructions:
+Accomplishments:
 
-If using Mac:
-	Run the HTML directly:
-		1) Change into the src/ directory.
-		2) Open the out.html file in Firefox.
-		This will play the default soundfile supplied in our repository.
+1) Ports
+	We set up two ports in our code, both of which listen for information from Javascript. 
+	Initially, we began this project by using Native for interacting with Javascript, but
+	with the lack of documentation and the inability to keep a global state for callback
+	functions that our library required, we decided to work with ports instead.
+	The first port we made (named ampharos) sends real time amplitude and frequency data
+	from js to elm. This data is used for our background visualization of the music.
+	The second port only sends data at the beginning of each playback. We treat
+	this data as if it were our initial state, as it contains info, such as bpm, that the
+	program needs to start the game, but that only needs to be sent once.
 
-	Add your own mp3 sound file:
-		1) Paste an mp3 file into the repository's root (the folder with update.txt)
-		2) Run 'python importSound.py' in the terminal.
-		3) Open the out.html file as above.
+2) Sound processing
+	As Elm does not currently have libraries for sound processing (or even playing,
+	Elm.Audio is deprecated), we had to use a js library named p5 to send sound data to Elm.
+	We did not write this library, but we made bug fixes to it along the way as it is
+	not a well-maintained library. Had we known this at the beginning, we may have chosen
+	a different library to build our code off of.
 
-If using Linux:
-	By script:
-		1) Stay in the root directory (same folder as update.txt)
-		2) Enter '.\run.sh' in the terminal.
-		An instance of Firefox will be opened automatically with our html page.
+	We initially wanted to do all of our sound processing in real time, but due to lag and
+	the need to print dots before they actually occur in the music so that players can hit
+	them with the beat, it became necessary to pre-process the peaks data and then send it all 
+	to elm once the processing had finished. This is partially due to how we deal with p5's 
+	inaccurate peak detection at the beginning of the sound file by doing both normal peak 
+	detection and peak detection of a reversed version of the soundfile. While this is fairly 
+	expensive, it happens just once and greatly increased the accuracy of our peak data.
+	We still do amplitude and frequency analysis in real time, as they did not cause significant
+	lag.
 
-	Adding your own sound mp3 file:
-		1) Paste an mp3 file in the directory's root (same folder as update.txt).
-		2) Run '.\run.sh' in the terminal.
-		The default sound file will be overwritten and replaced with your mp3.
-		Then, an instance of Firefox will be opened automatically.
+3) Timestamp management
+	Since we switched to pre-processed data, and had to deal with significant lag, we needed
+	to use timestamps on our data so that we could have events occur correctly relative to
+	each other, and be able to recover if elm got out of sync with the music.
+	The time stamps sent from p5 were in seconds relative to the start of song, but all other
+	time stamps were in milliseconds of system time, so some conversion was necessary
+	to handle timed events. Moreover, in order to prevent accumulating lag, we needed to use
+	the fps signal (which has time deltas instead of system time) to update according to the
+	time passed, which is frequently not in the intervals promised by Elm.
 
+	Perhaps the most important use of timestamps occurs when we begin to output peaks (beats)
+	on the screen before they must be hit by the player. To do this, we must have the data 
+	beforehand, and so we use asynchronous processing to get the whole list of peaks at the
+	beginning of song and iterate through it based on both time and the timestamps of 
+	click inputs. To output the peaks ahead of time, we compare the start time of the song
+	to the timedelta of the peak and draw the dot at the position the line will be in when
+	the timedelta occurs.
+
+4) Player input
+	The only player input we use is from the spacebar, but since we need to account for
+	reaction time and lag, we have a buffered time zone where space bars are counted as
+	correctly aligned with a given peak. Making this zone feel correct took quite a bit
+	of experimentation, and unfortunately is likely system specific. If we were to continue
+	this project, we would want to include a calibration test.
+
+5) Visual display
+	Our display is made up of three parts:
+	The background, which is made of 5 circles, is a visualization of the song's realtime
+	data. From left to right, each circle represts a frequency band, with its radius
+	representing the energy (amplitude over a frequency range) in that band. Thus the
+	left cirlces pulse with the beat of the song, and the others grow and fade depending
+	on the volume and instrumentation currently being used.
+	The bar, which moves up and down with the tempo of the song. Assuming that p5 correctly
+	calculates the song's bpm (which it normally at least gets close with) the bar moves from
+	one end to another every 4 beats.
+
+
+Our experience with Elm:
+
+
+Other challenges:
+	Aaron's inability to spell caused one minor setback when loading the Javascript file on 
+	the page silently failed because the file was named differently from what the html was
+	searching for.
+
+Known bugs:
 
 
 Progress:

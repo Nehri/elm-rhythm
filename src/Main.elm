@@ -1,4 +1,4 @@
-----------------------------------------------------------------------------------------------
+
 --                                                                                          --
 --                                                                                          --
 --                                          Imports                                         --             
@@ -11,7 +11,7 @@ module Main where
 import Time exposing (Time, fps, timestamp)
 import Graphics.Element as E
 import Graphics.Collage as C exposing (defaultLine)
-import Text exposing (fromString)
+import Text exposing (fromString, concat)
 
 import Signal
 import Window
@@ -132,6 +132,7 @@ missImage =
 ----------------------------------------------------------------------------------------------
 
 {--
+B
   Port that accepts real-time amplitude/frequency data from Javascript.
   Named after the Lighthouse Pokemon, Ampharos : 
     http://static.zerochan.net/Ampharos.full.1491150.jpg
@@ -167,6 +168,7 @@ update inputSig (peaks, score, line, bpm, start) =
     InitData data               -> 
       let speed = (0.5*(toFloat data.bpm)) / 60000.0 in
       let line' = { line | speed = speed } in
+
         (toPeakObjects data, score, line', data.bpm, data.start)
     Click (current,b)           ->
       if b then
@@ -305,11 +307,15 @@ drawScore (w,h) score =
   let gC = score.goodCount in
   let pC = score.perfectCount in
   let pen = score.penaltyCount in
-    C.move (w/2-100,h/2-100) (C.text 
-      (Text.typeface ["avant garde", "arial"] 
-      (Text.height 30 (Text.color (Color.rgba 138 0 94 0.5) 
-        (fromString 
-          ((toString (gC+pC))++" \n/ "++(toString (mC+gC+pC)) ))))))
+    C.move (w/2-100,h/2-100) (C.text (concat
+      [Text.typeface ["avant garde", "arial"] 
+        (Text.height 30 (Text.color (Color.rgba 138 0 94 0.5) 
+          (fromString 
+            ((toString ((gC*5)+(pC*10)+(-1*pen))))))),
+       Text.typeface ["arial"]
+        (Text.height 30 (Text.color (Color.rgba 138 0 94 0.5)
+          (fromString
+            ((toString (gC+pC)) ++ " / " ++ (toString (gC+pC+mC))))))]))
 
 {--
   Draws a dot ahead of time in the position the line will be in at the time 

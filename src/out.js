@@ -7830,17 +7830,24 @@ Elm.Main.make = function (_elm) {
       var pen = score.penaltyCount;
       return A2($Graphics$Collage.move,
       {ctor: "_Tuple2",_0: _p1._0 / 2 - 100,_1: _p1._1 / 2 - 100},
-      $Graphics$Collage.text(A2($Text.typeface,
-      _U.list(["avant garde","arial"]),
-      A2($Text.height,
-      30,
-      A2($Text.color,
-      A4($Color.rgba,138,0,94,0.5),
-      $Text.fromString(A2($Basics._op["++"],
-      $Basics.toString(gC + pC),
-      A2($Basics._op["++"],
-      " \n/ ",
-      $Basics.toString(mC + gC + pC)))))))));
+      $Graphics$Collage.text($Text.concat(_U.list([A2($Text.typeface,
+                                                  _U.list(["avant garde","arial"]),
+                                                  A2($Text.height,
+                                                  30,
+                                                  A2($Text.color,
+                                                  A4($Color.rgba,138,0,94,0.5),
+                                                  $Text.fromString($Basics.toString(gC * 5 + pC * 10 + -1 * pen)))))
+                                                  ,A2($Text.typeface,
+                                                  _U.list(["arial"]),
+                                                  A2($Text.height,
+                                                  30,
+                                                  A2($Text.color,
+                                                  A4($Color.rgba,138,0,94,0.5),
+                                                  $Text.fromString(A2($Basics._op["++"],
+                                                  $Basics.toString(gC + pC),
+                                                  A2($Basics._op["++"],
+                                                  " / ",
+                                                  $Basics.toString(gC + pC + mC)))))))]))));
    });
    var drawImage = F2(function (url,r) {
       return $Graphics$Collage.toForm(A3($Graphics$Element.image,
