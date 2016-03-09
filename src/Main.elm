@@ -211,7 +211,7 @@ clickPeaks current (peaks, score, line, bpm, start) =
   p::ps ->
     if p.hitType == Miss then
       let timeDistance = (start + p.timeDelta) - current in
-        if timeDistance > -75 && timeDistance < 30 then
+        if timeDistance > -50 && timeDistance < 25 then
           ({p | hitType = Perfect}::ps,
            {score | perfectCount = score.perfectCount+1 } )
         else if timeDistance > -175 && timeDistance < 75 then
