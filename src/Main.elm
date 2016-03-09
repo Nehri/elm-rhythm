@@ -209,9 +209,10 @@ clickPeaks current (peaks, score, line, bpm, start) =
   case peaks of
   []    -> (peaks, {score | penaltyCount = score.penaltyCount+1 })
   p::ps ->
+    {--
     if p.hitType == Miss then
       let timeDistance = (start + p.timeDelta) - current in
-        if timeDistance > -50 && timeDistance < 25 then
+        if timeDistance > -75 && timeDistance < 30 then
           ({p | hitType = Perfect}::ps,
            {score | perfectCount = score.perfectCount+1 } )
         else if timeDistance > -175 && timeDistance < 75 then
@@ -221,7 +222,8 @@ clickPeaks current (peaks, score, line, bpm, start) =
           (peaks, {score | penaltyCount = score.penaltyCount+1 })
     else
       let (ps',score') = clickPeaks current (ps, score, line, bpm, start) in
-        (p::ps',score')
+      --}
+        (p::ps,score')
 
 {--
   Updates the line height based on how much time has passed since the last
