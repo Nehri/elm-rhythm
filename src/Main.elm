@@ -347,7 +347,7 @@ drawScore (w,h) score =
         (Text.typeface ["avant garde", "arial"]
           (Text.height 15 (Text.color (Color.rgba 138 0 94 0.5)
             (fromString percentStr))))),
-       C.move (w/2-75, h/2-150) (C.text best)]
+       C.move (0, h/2-140) (C.text best)]
 
 {--
   Draws a dot ahead of time in the position the line will be in at the time 
