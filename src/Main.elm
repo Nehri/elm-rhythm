@@ -196,8 +196,8 @@ clickPeaks : Time -> Time -> List PeakObject -> List PeakObject
 clickPeaks current start peaks =
   case peaks of
   []   -> []
-  p:ps ->
-    if p.hitType == Miss
+  p::ps ->
+    if p.hitType == Miss then
       let timeDistance = (start + (p.timeDelta)) - current in
         if timeDistance > -75 && timeDistance < 30 then
           {p | hitType = Perfect}::ps

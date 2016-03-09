@@ -202,15 +202,6 @@ Elm.Main.make = function (_elm) {
    });
    var Perfect = {ctor: "Perfect"};
    var Good = {ctor: "Good"};
-   var clickPeak = F3(function (current,start,peak) {
-      var timeDistance = start + peak.timeDelta - current;
-      return _U.cmp(timeDistance,-75) > 0 && _U.cmp(timeDistance,
-      30) < 0 ? _U.update(peak,
-      {hitType: Perfect}) : _U.cmp(timeDistance,
-      -175) > 0 && _U.cmp(timeDistance,75) < 0 ? _U.update(peak,
-      {hitType: Good}) : _U.update(peak,
-      {penaltyCount: peak.penaltyCount + 1});
-   });
    var drawPeak = F5(function (_p17,peak,line,timeDistance,r) {
       var _p18 = _p17;
       var _p19 = _p18._1;
@@ -368,61 +359,82 @@ Elm.Main.make = function (_elm) {
       },
       data.peaks);
    };
-   var update = F2(function (inputSig,_p42) {
-      var _p43 = _p42;
-      var _p52 = _p43._4;
-      var _p51 = _p43._1;
-      var _p50 = _p43._0;
-      var _p49 = _p43._2;
-      var _p48 = _p43._3;
-      var _p44 = inputSig;
-      switch (_p44.ctor)
-      {case "InitData": var _p45 = _p44._0;
-           var speed = 0.5 * $Basics.toFloat(_p45.bpm) / 60000.0;
-           var line$ = _U.update(_p49,{speed: speed});
+   var clickPeaks = F3(function (current,start,peaks) {
+      var _p42 = peaks;
+      if (_p42.ctor === "[]") {
+            return _U.list([]);
+         } else {
+            var _p44 = _p42._1;
+            var _p43 = _p42._0;
+            if (_U.eq(_p43.hitType,Miss)) {
+                  var timeDistance = start + _p43.timeDelta - current;
+                  return _U.cmp(timeDistance,-75) > 0 && _U.cmp(timeDistance,
+                  30) < 0 ? A2($List._op["::"],
+                  _U.update(_p43,{hitType: Perfect}),
+                  _p44) : _U.cmp(timeDistance,-175) > 0 && _U.cmp(timeDistance,
+                  75) < 0 ? A2($List._op["::"],
+                  _U.update(_p43,{hitType: Good}),
+                  _p44) : A2($List._op["::"],
+                  _U.update(_p43,{penaltyCount: _p43.penaltyCount + 1}),
+                  _p44);
+               } else return A2($List._op["::"],
+               _p43,
+               A3(clickPeaks,current,start,_p44));
+         }
+   });
+   var update = F2(function (inputSig,_p45) {
+      var _p46 = _p45;
+      var _p55 = _p46._4;
+      var _p54 = _p46._1;
+      var _p53 = _p46._0;
+      var _p52 = _p46._2;
+      var _p51 = _p46._3;
+      var _p47 = inputSig;
+      switch (_p47.ctor)
+      {case "InitData": var _p48 = _p47._0;
+           var speed = 0.5 * $Basics.toFloat(_p48.bpm) / 60000.0;
+           var line$ = _U.update(_p52,{speed: speed});
            return {ctor: "_Tuple5"
-                  ,_0: toPeakObjects(_p45)
-                  ,_1: _p51
+                  ,_0: toPeakObjects(_p48)
+                  ,_1: _p54
                   ,_2: line$
-                  ,_3: _p45.bpm
-                  ,_4: _p45.start};
-         case "Click": if (_p44._0._1) {
-                 var _p46 = _p50;
-                 if (_p46.ctor === "[]") {
+                  ,_3: _p48.bpm
+                  ,_4: _p48.start};
+         case "Click": if (_p47._0._1) {
+                 var _p49 = _p53;
+                 if (_p49.ctor === "[]") {
                        return {ctor: "_Tuple5"
-                              ,_0: _p50
-                              ,_1: _U.update(_p51,{penaltyCount: _p51.penaltyCount + 1})
-                              ,_2: _p49
-                              ,_3: _p48
-                              ,_4: _p52};
+                              ,_0: _p53
+                              ,_1: _U.update(_p54,{penaltyCount: _p54.penaltyCount + 1})
+                              ,_2: _p52
+                              ,_3: _p51
+                              ,_4: _p55};
                     } else {
                        return {ctor: "_Tuple5"
-                              ,_0: A2($List._op["::"],
-                              A3(clickPeak,_p44._0._0,_p52,_p46._0),
-                              _p46._1)
-                              ,_1: _p51
-                              ,_2: _p49
-                              ,_3: _p48
-                              ,_4: _p52};
+                              ,_0: A3(clickPeaks,_p47._0._0,_p55,_p53)
+                              ,_1: _p54
+                              ,_2: _p52
+                              ,_3: _p51
+                              ,_4: _p55};
                     }
               } else return {ctor: "_Tuple5"
-                            ,_0: _p50
-                            ,_1: _p51
-                            ,_2: _p49
-                            ,_3: _p48
-                            ,_4: _p52};
-         default: var line$ = A2(updateLine,_p44._0._1,_p49);
-           var _p47 = A2(updatePeaks,
-           _p44._0._0,
-           {ctor: "_Tuple5",_0: _p50,_1: _p51,_2: _p49,_3: _p48,_4: _p52});
-           var ps$ = _p47._0;
-           var score$ = _p47._1;
+                            ,_0: _p53
+                            ,_1: _p54
+                            ,_2: _p52
+                            ,_3: _p51
+                            ,_4: _p55};
+         default: var line$ = A2(updateLine,_p47._0._1,_p52);
+           var _p50 = A2(updatePeaks,
+           _p47._0._0,
+           {ctor: "_Tuple5",_0: _p53,_1: _p54,_2: _p52,_3: _p51,_4: _p55});
+           var ps$ = _p50._0;
+           var score$ = _p50._1;
            return {ctor: "_Tuple5"
                   ,_0: ps$
                   ,_1: score$
                   ,_2: line$
-                  ,_3: _p48
-                  ,_4: _p52};}
+                  ,_3: _p51
+                  ,_4: _p55};}
    });
    var LineObject = F3(function (a,b,c) {
       return {direction: a,height: b,speed: c};
@@ -487,7 +499,7 @@ Elm.Main.make = function (_elm) {
                              ,missImage: missImage
                              ,update: update
                              ,toPeakObjects: toPeakObjects
-                             ,clickPeak: clickPeak
+                             ,clickPeaks: clickPeaks
                              ,updateLine: updateLine
                              ,updatePeaks: updatePeaks
                              ,linePosition: linePosition
