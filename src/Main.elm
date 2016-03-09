@@ -210,13 +210,13 @@ clickPeaks current (peaks, score, line, bpm, start) =
   []    -> (peaks, {score | penaltyCount = score.penaltyCount+1 })
   p::ps ->
     if p.hitType == Miss then
-      let timeDistance = (start + (p.timeDelta)) - current in
+      let timeDistance = (start + p.timeDelta) - current in
         if timeDistance > -75 && timeDistance < 30 then
           ({p | hitType = Perfect}::ps,
            {score | perfectCount = score.perfectCount+1 } )
         else if timeDistance > -175 && timeDistance < 75 then
-          ({p | hitType = Perfect}::ps,
-           {score | goodCount = score.perfectCount+1 } )
+          ({p | hitType = Good}::ps,
+           {score | goodCount = score.goodCount+1 } )
         else
           (peaks, {score | penaltyCount = score.penaltyCount+1 })
     else
@@ -257,9 +257,7 @@ updatePeaks current (peaks, score, line, bpm, start) =
               Miss    -> 
                 let score' = {score | missCount = score.missCount+1} in
                   updatePeaks current (ps, score', line, bpm, start)
-              Good    -> 
-                updatePeaks current (ps, score, line, bpm, start)
-              Perfect -> 
+              _    -> 
                 updatePeaks current (ps, score, line, bpm, start)
           else
             (peaks, score)
@@ -362,9 +360,9 @@ drawPeak (w,h) peak line timeDistance r =
   let h2 = futurePos.height in      
   let w' = (w-100) in
   let w2 =
-  let mod =  ((round (peak.timeDelta / 10)) % (2*w')) in
-    if mod < w' then (w'//(-2)) + mod
-    else (w'//2) - (mod%w')
+    let mod =  ((round (peak.timeDelta / 10)) % (2*w')) in
+      if mod < w' then (w'//(-2)) + mod
+      else (w'//2) - (mod%w')
   in
     if peak.hitType == Good then
       (C.move (toFloat w2, h2*(toFloat (h//2))) (drawImage hitImage (round (2*r))))

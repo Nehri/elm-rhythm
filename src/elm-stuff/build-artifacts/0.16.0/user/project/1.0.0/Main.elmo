@@ -143,39 +143,30 @@ Elm.Main.make = function (_elm) {
                var timeDistance = _p22 + _p16.timeDelta - current;
                if (_U.cmp(timeDistance,-300) < 0) {
                      var _p15 = _p16.hitType;
-                     switch (_p15.ctor)
-                     {case "Miss": var score$ = _U.update(_p21,
-                          {missCount: _p21.missCount + 1});
-                          var _v8 = current,
-                          _v9 = {ctor: "_Tuple5"
-                                ,_0: _p17
-                                ,_1: score$
-                                ,_2: _p19
-                                ,_3: _p18
-                                ,_4: _p22};
-                          current = _v8;
-                          _p12 = _v9;
-                          continue updatePeaks;
-                        case "Good": var _v10 = current,
-                          _v11 = {ctor: "_Tuple5"
+                     if (_p15.ctor === "Miss") {
+                           var score$ = _U.update(_p21,{missCount: _p21.missCount + 1});
+                           var _v8 = current,
+                           _v9 = {ctor: "_Tuple5"
                                  ,_0: _p17
-                                 ,_1: _p21
+                                 ,_1: score$
                                  ,_2: _p19
                                  ,_3: _p18
                                  ,_4: _p22};
-                          current = _v10;
-                          _p12 = _v11;
-                          continue updatePeaks;
-                        default: var _v12 = current,
-                          _v13 = {ctor: "_Tuple5"
-                                 ,_0: _p17
-                                 ,_1: _p21
-                                 ,_2: _p19
-                                 ,_3: _p18
-                                 ,_4: _p22};
-                          current = _v12;
-                          _p12 = _v13;
-                          continue updatePeaks;}
+                           current = _v8;
+                           _p12 = _v9;
+                           continue updatePeaks;
+                        } else {
+                           var _v10 = current,
+                           _v11 = {ctor: "_Tuple5"
+                                  ,_0: _p17
+                                  ,_1: _p21
+                                  ,_2: _p19
+                                  ,_3: _p18
+                                  ,_4: _p22};
+                           current = _v10;
+                           _p12 = _v11;
+                           continue updatePeaks;
+                        }
                   } else return {ctor: "_Tuple2",_0: _p20,_1: _p21};
             }
       }
@@ -303,17 +294,17 @@ Elm.Main.make = function (_elm) {
                var _p31 = _p30._0;
                var timeDistance = _p36 + _p31.timeDelta - current;
                if (_U.cmp(timeDistance,-300) < 0) {
-                     var _v18 = {ctor: "_Tuple2",_0: _p38,_1: _p37},
-                     _v19 = current,
-                     _v20 = {ctor: "_Tuple5"
+                     var _v16 = {ctor: "_Tuple2",_0: _p38,_1: _p37},
+                     _v17 = current,
+                     _v18 = {ctor: "_Tuple5"
                             ,_0: _p32
                             ,_1: _p35
                             ,_2: _p34
                             ,_3: _p33
                             ,_4: _p36};
-                     _p27 = _v18;
-                     current = _v19;
-                     _p26 = _v20;
+                     _p27 = _v16;
+                     current = _v17;
+                     _p26 = _v18;
                      continue drawPeaks;
                   } else if (_U.cmp(timeDistance,700) > 0) return _U.list([]);
                   else {
@@ -413,11 +404,11 @@ Elm.Main.make = function (_elm) {
                             ,_1: _U.update(_p55,
                             {perfectCount: _p55.perfectCount + 1})} : _U.cmp(timeDistance,
                   -175) > 0 && _U.cmp(timeDistance,75) < 0 ? {ctor: "_Tuple2"
-                                                             ,_0: A2($List._op["::"],_U.update(_p52,{hitType: Perfect}),_p53)
+                                                             ,_0: A2($List._op["::"],_U.update(_p52,{hitType: Good}),_p53)
                                                              ,_1: _U.update(_p55,
-                                                             {goodCount: _p55.perfectCount + 1})} : {ctor: "_Tuple2"
-                                                                                                    ,_0: _p54
-                                                                                                    ,_1: _U.update(_p55,{penaltyCount: _p55.penaltyCount + 1})};
+                                                             {goodCount: _p55.goodCount + 1})} : {ctor: "_Tuple2"
+                                                                                                 ,_0: _p54
+                                                                                                 ,_1: _U.update(_p55,{penaltyCount: _p55.penaltyCount + 1})};
                } else {
                   var _p51 = A2(clickPeaks,
                   current,
