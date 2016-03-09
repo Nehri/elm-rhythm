@@ -18,8 +18,6 @@ import Window
 import Color
 import Keyboard
 
-
-
 ----------------------------------------------------------------------------------------------
 --                                                                                          --
 --                                                                                          --
@@ -31,9 +29,10 @@ import Keyboard
 {--
   Wrapper containing the list of peaks, 
   the score data, the line,
-  the song's bpm, and start time.
+  the song's bpm,
+  a start time and the previous frame's timestamp.
 --}
-type alias State = (List PeakObject, ScoreObject, LineObject, Int, Time)
+type alias State = (List PeakObject, ScoreObject, LineObject, Int, Time, Time)
 
 initScore : ScoreObject
 initScore = {missCount = 0, goodCount = 0, perfectCount = 0, penaltyCount = 0, best = Nothing}
@@ -42,7 +41,7 @@ initLine : LineObject
 initLine = {direction = 0, height = 1, speed = 0}
   
 initState : State
-initState = ([], initScore, initLine, 0, 0)
+initState = ([], initScore, initLine, 0, 0.0, 0.0)
 
 {--
   Merged signals relating to user input and peak analysis.
@@ -163,7 +162,7 @@ port flaaffy : Signal InitialData
       front of the list
 --}
 update : InputSignal -> State -> State
-update inputSig (peaks, score, line, bpm, start) =
+update inputSig (peaks, score, line, bpm, start, prev) =
   case inputSig of
     InitData data               -> 
       let speed = (0.5*(toFloat data.bpm)) / 60000.0 in
@@ -181,16 +180,19 @@ update inputSig (peaks, score, line, bpm, start) =
             if cS > prev then Just cS
             else Just prev
         in 
-          (toPeakObjects data, {initScore | best = best'}, line', data.bpm, data.start)
+          (toPeakObjects data, {initScore | best = best'}, line', data.bpm, data.start, data.start)
+
     Click (current,b)           ->
-      if b then 
-        let (peaks',score') = (clickPeaks current (peaks, score, line, bpm, start)) in
-          (peaks', score', line, bpm, start)
-      else (peaks, score, line, bpm, start)
-    TimeUpdate (current, delta) -> 
-      let line' = updateLine delta line in
-      let (ps', score') = updatePeaks current (peaks, score, line, bpm, start) in
-        (ps', score', line', bpm, start)
+      let line' = updateLine (current-prev) line in
+        if b then 
+          let (peaks',score') = (clickPeaks current (peaks, score, line', bpm, start, prev)) in
+            (peaks', score', line', bpm, start, current)
+        else (peaks, score, line', bpm, start, current)
+
+    TimeUpdate (current, _) -> 
+      let line' = updateLine (current-prev) line in
+      let (ps', score') = updatePeaks current (peaks, score, line', bpm, start, prev) in
+        (ps', score', line', bpm, start, current)
 
 {--
   Turns the TimeDeltas (Floats) received from Javascript into PeakObjects
@@ -205,11 +207,10 @@ toPeakObjects data =
   updates them and the score accordingly.
 --}
 clickPeaks : Time -> State -> (List PeakObject, ScoreObject)
-clickPeaks current (peaks, score, line, bpm, start) =
+clickPeaks current (peaks, score, line, bpm, start, prev) =
   case peaks of
   []    -> (peaks, {score | penaltyCount = score.penaltyCount+1 })
   p::ps ->
-    {--
     if p.hitType == Miss then
       let timeDistance = (start + p.timeDelta) - current in
         if timeDistance > -75 && timeDistance < 30 then
@@ -221,9 +222,8 @@ clickPeaks current (peaks, score, line, bpm, start) =
         else
           (peaks, {score | penaltyCount = score.penaltyCount+1 })
     else
-      let (ps',score') = clickPeaks current (ps, score, line, bpm, start) in
-      --}
-        (p::ps,score')
+      let (ps',score') = clickPeaks current (ps, score, line, bpm, start, prev) in
+        (p::ps',score')
 
 {--
   Updates the line height based on how much time has passed since the last
@@ -236,7 +236,7 @@ updateLine delta line =
     if line.height-(line.speed*delta) < -1 then
       {line | direction = 1, height = ((-1.0)-((line.height-(line.speed*delta))+1))}
     else
-      {line | height = line.height - (line.speed * delta) }
+      {line | height = line.height - (line.speed*delta) }
   --moving upwards
   else
     if line.height+(line.speed*delta) > 1 then
@@ -249,7 +249,7 @@ updateLine delta line =
   if so updates the Score object accordingly and returns both values
 --}
 updatePeaks : Time -> State -> (List PeakObject, ScoreObject)
-updatePeaks current (peaks, score, line, bpm, start) =
+updatePeaks current (peaks, score, line, bpm, start, prev) =
   case peaks of
       []     -> (peaks, score)
       p::ps  ->
@@ -258,9 +258,9 @@ updatePeaks current (peaks, score, line, bpm, start) =
             case p.hitType of
               Miss    -> 
                 let score' = {score | missCount = score.missCount+1} in
-                  updatePeaks current (ps, score', line, bpm, start)
+                  updatePeaks current (ps, score', line, bpm, start, prev)
               _    -> 
-                updatePeaks current (ps, score, line, bpm, start)
+                updatePeaks current (ps, score, line, bpm, start, prev)
           else
             (peaks, score)
 
@@ -381,14 +381,14 @@ drawPeak (w,h) peak line timeDistance r =
   Cycles through the peaks in the state and draws any that will be happening soon.
 --}
 drawPeaks : (Int, Int) -> Time -> State -> List C.Form
-drawPeaks (w,h) current (peaks, score, line, bpm, start) =
+drawPeaks (w,h) current (peaks, score, line, bpm, start, prev) =
     case peaks of
       []     -> []
       p::ps  -> 
           let timeDistance = (start + (p.timeDelta)) - current in
             --Beats that are passed
             if timeDistance < -300 then
-              drawPeaks (w,h) current (ps, score, line, bpm, start)
+              drawPeaks (w,h) current (ps, score, line, bpm, start, prev)
             --Beats that are too far away
             else if timeDistance > 700 then
               []
@@ -407,17 +407,17 @@ drawPeaks (w,h) current (peaks, score, line, bpm, start) =
                 else if timeDistance < 600 then 22
                 else if timeDistance < 650 then 20
                 else 10 in
-                  (drawPeak (w,h) p line timeDistance r)::(drawPeaks (w,h) current (ps, score, line, bpm, start))
+                  (drawPeak (w,h) p line timeDistance r)::(drawPeaks (w,h) current (ps, score, line, bpm, start, prev))
 
 {--
   Adds the score, line, dots, and background circles together for the page.
 --}
 view : (Int, Int) -> RealTimeData ->  (Time, State) -> E.Element
-view (w,h) rt (t, (peaks, score, line, bpm, start)) =
+view (w,h) rt (t, (peaks, score, line, bpm, start, prev)) =
   let (w',h') = (w, h-150) in
     C.collage w (h-100) ((linePosition (toFloat w,line.height*(toFloat (h'//2))))::
       (List.append (drawScore (toFloat w,toFloat h) score)
-      (List.append (drawPeaks (w',h') t (peaks, score, line, bpm, start)) (drawBackground (w,h) rt))))
+      (List.append (drawPeaks (w',h') t (peaks, score, line, bpm, start, prev)) (drawBackground (w,h) rt))))
 
 ----------------------------------------------------------------------------------------------
 --                                                                                          --
@@ -433,7 +433,7 @@ view (w,h) rt (t, (peaks, score, line, bpm, start)) =
 --}
 main : Signal E.Element
 main = 
-  [(Signal.map InitData flaaffy),(Signal.map Click (timestamp Keyboard.space)),(Signal.map TimeUpdate (timestamp (fps 30)))]
+  [(Signal.map InitData flaaffy),(Signal.map Click (timestamp Keyboard.space)),(Signal.map TimeUpdate (timestamp (fps 60)))]
     |> Signal.mergeMany
     |> Signal.foldp update initState
     |> timestamp
