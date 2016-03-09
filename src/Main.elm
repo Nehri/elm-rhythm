@@ -93,7 +93,6 @@ type alias PeakObject =
   { 
     timeDelta    : Float,
     hitType      : Hit,
-    penaltyCount : Int
   }
 
 {--
@@ -167,14 +166,12 @@ update inputSig (peaks, score, line, bpm, start) =
     InitData data               -> 
       let speed = (0.5*(toFloat data.bpm)) / 60000.0 in
       let line' = { line | speed = speed } in
-        (toPeakObjects data, score, line', data.bpm, data.start)
+        (toPeakObjects data, initScore, line', data.bpm, data.start)
     Click (current,b)           ->
-      if b then
-       case peaks of
-        []    -> (peaks, {score | penaltyCount = score.penaltyCount + 1}, line, bpm, start)
-        p::ps -> ((clickPeaks current start peaks), score, line, bpm, start)
-      else
-        (peaks, score, line, bpm, start)
+      if b then 
+        let (peaks',score') = (clickPeaks current (peaks, score, line, bpm, start)) in
+          (peaks', score', line, bpm, start)
+      else (peaks, score, line, bpm, start)
     TimeUpdate (current, delta) -> 
       let line' = updateLine delta line in
       let (ps', score') = updatePeaks current (peaks, score, line, bpm, start) in
@@ -186,27 +183,30 @@ update inputSig (peaks, score, line, bpm, start) =
 --}
 toPeakObjects : InitialData -> List PeakObject
 toPeakObjects data =
-    List.map (\time -> {timeDelta = time*1000, hitType = Miss, penaltyCount = 0}) data.peaks
+    List.map (\time -> {timeDelta = time*1000, hitType = Miss}) data.peaks
 
 {--
   Checks if the time the key was pressed coincides with any peaks and
-  updates them accordingly.
+  updates them and the score accordingly.
 --}
-clickPeaks : Time -> Time -> List PeakObject -> List PeakObject
-clickPeaks current start peaks =
+clickPeaks : Time -> State -> (List PeakObject, ScoreObject)
+clickPeaks current (peaks, score, line, bpm, start) =
   case peaks of
-  []   -> []
+  []    -> []
   p::ps ->
     if p.hitType == Miss then
       let timeDistance = (start + (p.timeDelta)) - current in
         if timeDistance > -75 && timeDistance < 30 then
-          {p | hitType = Perfect}::ps
+          ({p | hitType = Perfect}::ps,
+           {score | perfectCount = score.perfectCount+1 } )
         else if timeDistance > -175 && timeDistance < 75 then
-          {p | hitType = Good}::ps
-        else 
-          {p | penaltyCount = p.penaltyCount + 1}::ps
+          ({p | hitType = Perfect}::ps,
+           {score | goodCount = score.perfectCount+1 } )
+        else
+          (peaks, {score | penaltyCount = score.penaltyCount+1 })
     else
-      p::(clickPeaks current start ps)
+      let (ps',score') = clickPeaks current (ps, score, line, bpm, start) in
+        (p::ps',score')
 
 {--
   Updates the line height based on how much time has passed since the last
@@ -235,25 +235,17 @@ updatePeaks : Time -> State -> (List PeakObject, ScoreObject)
 updatePeaks current (peaks, score, line, bpm, start) =
   case peaks of
       []     -> (peaks, score)
-      p::ps  -> 
+      p::ps  ->
         let timeDistance = (start + (p.timeDelta)) - current in
           if timeDistance < -300 then
             case p.hitType of
               Miss    -> 
-                let score' = {
-                  score | missCount = score.missCount+1,
-                  penaltyCount = score.penaltyCount +p.penaltyCount } in
-                    updatePeaks current (ps, score', line, bpm, start)
+                let score' = {score | missCount = score.missCount+1} in
+                  updatePeaks current (ps, score', line, bpm, start)
               Good    -> 
-                let score' = {
-                  score | goodCount = score.goodCount+1,
-                  penaltyCount = score.penaltyCount +p.penaltyCount } in
-                    updatePeaks current (ps, score', line, bpm, start)
+                updatePeaks current (ps, score, line, bpm, start)
               Perfect -> 
-                let score' = {
-                  score | perfectCount = score.perfectCount+1,
-                  penaltyCount = score.penaltyCount +p.penaltyCount } in
-                    updatePeaks current (ps, score', line, bpm, start)
+                updatePeaks current (ps, score, line, bpm, start)
           else
             (peaks, score)
 
