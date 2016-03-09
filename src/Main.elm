@@ -294,14 +294,15 @@ drawImage url r =
   Draws 5 transparent circles in the background to represent different frequency
   ranges in the song.
 --}
-drawBackground : Int -> RealTimeData -> List C.Form
-drawBackground w rt =
+drawBackground : (Int, Int) -> RealTimeData -> List C.Form
+drawBackground (w,h) rt =
   [
     ( C.moveX (toFloat (-1*(w//3))) (drawCircle (Color.rgba 0 52 48 0.05) rt.bass_energy) ),
     ( C.moveX (toFloat (-1*(w//6))) (drawCircle (Color.rgba 13 78 73 0.05) rt.low_energy) ),
     ( C.moveX 0.0                   (drawCircle (Color.rgba 35 104 99 0.05) rt.mid_energy) ),
     ( C.moveX (toFloat (w//6))      (drawCircle (Color.rgba 65 131 126 0.05) rt.high_energy) ),
-    ( C.moveX (toFloat (w//3))      (drawCircle (Color.rgba 105 157 153 0.05) rt.treble_energy) )
+    ( C.moveX (toFloat (w//3))      (drawCircle (Color.rgba 105 157 153 0.05) rt.treble_energy) ),
+    ( C.move (toFloat (-1*(w//2)), toFloat (h//2)) (C.filled (Color.rgba 0 71 65 0.5) (C.rect (toFloat w) (toFloat h))))
   ]
 
 {--
@@ -317,12 +318,19 @@ drawScore (w,h) score =
       [Text.typeface ["avant garde", "arial"] 
         (Text.height 30 (Text.color (Color.rgba 138 0 94 0.5) 
           (fromString 
-            ((toString ((gC*5)+(pC*10)+(-1*pen))))))),
+            ((toString ((gC*5)+(pC*10)+((-1)*pen))))))),
        Text.typeface ["arial"]
         (Text.height 30 (Text.color (Color.rgba 138 0 94 0.5)
           (fromString
             ((toString (gC+pC)) ++ " / " ++ (toString (gC+pC+mC))))))]))
 
+   {--
+   (C.move (0, h/2-100) (C.text (Text.typeface ["avant garde"]
+      (Text.height 30 (Text.color (Color.rgba 138 0 94 0.5)
+         (fromString
+          (toString score)))))))
+
+--}
 {--
   Draws a dot ahead of time in the position the line will be in at the time 
   the peak happens in the music.
@@ -388,7 +396,7 @@ view (w,h) rt (t, (peaks, score, line, bpm, start)) =
   let (w',h') = (w, h-150) in
     C.collage w (h-100) ((linePosition (toFloat w,line.height*(toFloat (h'//2))))::
       (drawScore (toFloat w,toFloat h) score)::
-      (List.append (drawPeaks (w',h') t (peaks, score, line, bpm, start)) (drawBackground w rt)))
+      (List.append (drawPeaks (w',h') t (peaks, score, line, bpm, start)) (drawBackground (w,h) rt)))
 
 ----------------------------------------------------------------------------------------------
 --                                                                                          --
