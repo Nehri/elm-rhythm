@@ -174,7 +174,7 @@ update inputSig (peaks, score, line, bpm, start) =
       if b then
        case peaks of
         []    -> (peaks, {score | penaltyCount = score.penaltyCount + 1}, line, bpm, start)
-        p::ps -> ((clickPeak current start p)::ps, score, line, bpm, start)
+        p::ps -> ((clickPeaks current start peaks), score, line, bpm, start)
       else
         (peaks, score, line, bpm, start)
     TimeUpdate (current, delta) -> 
@@ -194,15 +194,21 @@ toPeakObjects data =
   Checks if the time the key was pressed coincides with any peaks and
   updates them accordingly.
 --}
-clickPeak : Time -> Time -> PeakObject -> PeakObject
-clickPeak current start peak =
-  let timeDistance = (start + (peak.timeDelta)) - current in
-    if timeDistance > -75 && timeDistance < 30 then
-      {peak | hitType = Perfect}
-    else if timeDistance > -175 && timeDistance < 75 then
-      {peak | hitType = Good}
-    else 
-      {peak | penaltyCount = peak.penaltyCount + 1}
+clickPeaks : Time -> Time -> List PeakObject -> List PeakObject
+clickPeaks current start peaks =
+  case peaks of
+  []   -> []
+  p::ps ->
+    if p.hitType == Miss then
+      let timeDistance = (start + (p.timeDelta)) - current in
+        if timeDistance > -75 && timeDistance < 30 then
+          {p | hitType = Perfect}::ps
+        else if timeDistance > -175 && timeDistance < 75 then
+          {p | hitType = Good}::ps
+        else 
+          {p | penaltyCount = p.penaltyCount + 1}::ps
+    else
+      p::(clickPeaks current start ps)
 
 {--
   Updates the line height based on how much time has passed since the last
