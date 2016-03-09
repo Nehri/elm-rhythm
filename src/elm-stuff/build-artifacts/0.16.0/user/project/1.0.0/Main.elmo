@@ -484,8 +484,9 @@ Elm.Main.make = function (_elm) {
            var best$ = function () {
               var _p60 = _p68.best;
               if (_p60.ctor === "Nothing") {
-                    return _U.eq(_p68,
-                    initScore) ? $Maybe.Nothing : $Maybe.Just(cS);
+                    return _U.eq(_p68.missCount,0) && (_U.eq(_p68.goodCount,
+                    0) && _U.eq(_p68.perfectCount,
+                    0)) ? $Maybe.Nothing : $Maybe.Just(cS);
                  } else {
                     var _p61 = _p60._0;
                     return _U.cmp(cS,

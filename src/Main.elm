@@ -172,7 +172,10 @@ update inputSig (peaks, score, line, bpm, start) =
       let best' = 
         case score.best of
           Nothing   -> 
-            if score == initScore then Nothing
+            if (score.missCount == 0 &&
+                score.goodCount == 0 &&
+                score.perfectCount == 0)
+              then Nothing
             else Just cS
           Just prev -> 
             if cS > prev then Just cS
