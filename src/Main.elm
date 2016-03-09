@@ -92,7 +92,7 @@ type Hit = Miss | Good | Perfect
 type alias PeakObject = 
   { 
     timeDelta    : Float,
-    hitType      : Hit,
+    hitType      : Hit
   }
 
 {--
@@ -193,7 +193,7 @@ toPeakObjects data =
 clickPeaks : Time -> State -> (List PeakObject, ScoreObject)
 clickPeaks current (peaks, score, line, bpm, start) =
   case peaks of
-  []    -> []
+  []    -> (peaks, {score | penaltyCount = score.penaltyCount+1 })
   p::ps ->
     if p.hitType == Miss then
       let timeDistance = (start + (p.timeDelta)) - current in

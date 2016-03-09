@@ -123,8 +123,7 @@ Elm.Main.make = function (_elm) {
                      var _p13 = _p14.hitType;
                      switch (_p13.ctor)
                      {case "Miss": var score$ = _U.update(_p19,
-                          {missCount: _p19.missCount + 1
-                          ,penaltyCount: _p19.penaltyCount + _p14.penaltyCount});
+                          {missCount: _p19.missCount + 1});
                           var _v6 = current,
                           _v7 = {ctor: "_Tuple5"
                                 ,_0: _p15
@@ -135,26 +134,20 @@ Elm.Main.make = function (_elm) {
                           current = _v6;
                           _p10 = _v7;
                           continue updatePeaks;
-                        case "Good": var score$ = _U.update(_p19,
-                          {goodCount: _p19.goodCount + 1
-                          ,penaltyCount: _p19.penaltyCount + _p14.penaltyCount});
-                          var _v8 = current,
+                        case "Good": var _v8 = current,
                           _v9 = {ctor: "_Tuple5"
                                 ,_0: _p15
-                                ,_1: score$
+                                ,_1: _p19
                                 ,_2: _p17
                                 ,_3: _p16
                                 ,_4: _p20};
                           current = _v8;
                           _p10 = _v9;
                           continue updatePeaks;
-                        default: var score$ = _U.update(_p19,
-                          {perfectCount: _p19.perfectCount + 1
-                          ,penaltyCount: _p19.penaltyCount + _p14.penaltyCount});
-                          var _v10 = current,
+                        default: var _v10 = current,
                           _v11 = {ctor: "_Tuple5"
                                  ,_0: _p15
-                                 ,_1: score$
+                                 ,_1: _p19
                                  ,_2: _p17
                                  ,_3: _p16
                                  ,_4: _p20};
@@ -216,8 +209,8 @@ Elm.Main.make = function (_elm) {
              ,perfectCount: c
              ,penaltyCount: d};
    });
-   var PeakObject = F3(function (a,b,c) {
-      return {timeDelta: a,hitType: b,penaltyCount: c};
+   var PeakObject = F2(function (a,b) {
+      return {timeDelta: a,hitType: b};
    });
    var Perfect = {ctor: "Perfect"};
    var Good = {ctor: "Good"};
@@ -372,88 +365,52 @@ Elm.Main.make = function (_elm) {
    var toPeakObjects = function (data) {
       return A2($List.map,
       function (time) {
-         return {timeDelta: time * 1000
-                ,hitType: Miss
-                ,penaltyCount: 0};
+         return {timeDelta: time * 1000,hitType: Miss};
       },
       data.peaks);
    };
-   var clickPeaks = F3(function (current,start,peaks) {
-      var _p46 = peaks;
-      if (_p46.ctor === "[]") {
-            return _U.list([]);
+   var clickPeaks = F2(function (current,_p46) {
+      var _p47 = _p46;
+      var _p54 = _p47._4;
+      var _p53 = _p47._1;
+      var _p52 = _p47._0;
+      var _p48 = _p52;
+      if (_p48.ctor === "[]") {
+            return {ctor: "_Tuple2"
+                   ,_0: _p52
+                   ,_1: _U.update(_p53,{penaltyCount: _p53.penaltyCount + 1})};
          } else {
-            var _p48 = _p46._1;
-            var _p47 = _p46._0;
-            if (_U.eq(_p47.hitType,Miss)) {
-                  var timeDistance = start + _p47.timeDelta - current;
+            var _p51 = _p48._1;
+            var _p50 = _p48._0;
+            if (_U.eq(_p50.hitType,Miss)) {
+                  var timeDistance = _p54 + _p50.timeDelta - current;
                   return _U.cmp(timeDistance,-75) > 0 && _U.cmp(timeDistance,
-                  30) < 0 ? A2($List._op["::"],
-                  _U.update(_p47,{hitType: Perfect}),
-                  _p48) : _U.cmp(timeDistance,-175) > 0 && _U.cmp(timeDistance,
-                  75) < 0 ? A2($List._op["::"],
-                  _U.update(_p47,{hitType: Good}),
-                  _p48) : A2($List._op["::"],
-                  _U.update(_p47,{penaltyCount: _p47.penaltyCount + 1}),
-                  _p48);
-               } else return A2($List._op["::"],
-               _p47,
-               A3(clickPeaks,current,start,_p48));
+                  30) < 0 ? {ctor: "_Tuple2"
+                            ,_0: A2($List._op["::"],_U.update(_p50,{hitType: Perfect}),_p51)
+                            ,_1: _U.update(_p53,
+                            {perfectCount: _p53.perfectCount + 1})} : _U.cmp(timeDistance,
+                  -175) > 0 && _U.cmp(timeDistance,75) < 0 ? {ctor: "_Tuple2"
+                                                             ,_0: A2($List._op["::"],_U.update(_p50,{hitType: Perfect}),_p51)
+                                                             ,_1: _U.update(_p53,
+                                                             {goodCount: _p53.perfectCount + 1})} : {ctor: "_Tuple2"
+                                                                                                    ,_0: _p52
+                                                                                                    ,_1: _U.update(_p53,{penaltyCount: _p53.penaltyCount + 1})};
+               } else {
+                  var _p49 = A2(clickPeaks,
+                  current,
+                  {ctor: "_Tuple5"
+                  ,_0: _p51
+                  ,_1: _p53
+                  ,_2: _p47._2
+                  ,_3: _p47._3
+                  ,_4: _p54});
+                  var ps$ = _p49._0;
+                  var score$ = _p49._1;
+                  return {ctor: "_Tuple2"
+                         ,_0: A2($List._op["::"],_p50,ps$)
+                         ,_1: score$};
+               }
          }
-   });
-   var update = F2(function (inputSig,_p49) {
-      var _p50 = _p49;
-      var _p59 = _p50._4;
-      var _p58 = _p50._1;
-      var _p57 = _p50._0;
-      var _p56 = _p50._2;
-      var _p55 = _p50._3;
-      var _p51 = inputSig;
-      switch (_p51.ctor)
-      {case "InitData": var _p52 = _p51._0;
-           var speed = 0.5 * $Basics.toFloat(_p52.bpm) / 60000.0;
-           var line$ = _U.update(_p56,{speed: speed});
-           return {ctor: "_Tuple5"
-                  ,_0: toPeakObjects(_p52)
-                  ,_1: _p58
-                  ,_2: line$
-                  ,_3: _p52.bpm
-                  ,_4: _p52.start};
-         case "Click": if (_p51._0._1) {
-                 var _p53 = _p57;
-                 if (_p53.ctor === "[]") {
-                       return {ctor: "_Tuple5"
-                              ,_0: _p57
-                              ,_1: _U.update(_p58,{penaltyCount: _p58.penaltyCount + 1})
-                              ,_2: _p56
-                              ,_3: _p55
-                              ,_4: _p59};
-                    } else {
-                       return {ctor: "_Tuple5"
-                              ,_0: A3(clickPeaks,_p51._0._0,_p59,_p57)
-                              ,_1: _p58
-                              ,_2: _p56
-                              ,_3: _p55
-                              ,_4: _p59};
-                    }
-              } else return {ctor: "_Tuple5"
-                            ,_0: _p57
-                            ,_1: _p58
-                            ,_2: _p56
-                            ,_3: _p55
-                            ,_4: _p59};
-         default: var line$ = A2(updateLine,_p51._0._1,_p56);
-           var _p54 = A2(updatePeaks,
-           _p51._0._0,
-           {ctor: "_Tuple5",_0: _p57,_1: _p58,_2: _p56,_3: _p55,_4: _p59});
-           var ps$ = _p54._0;
-           var score$ = _p54._1;
-           return {ctor: "_Tuple5"
-                  ,_0: ps$
-                  ,_1: score$
-                  ,_2: line$
-                  ,_3: _p55
-                  ,_4: _p59};}
    });
    var LineObject = F3(function (a,b,c) {
       return {direction: a,height: b,speed: c};
@@ -487,6 +444,55 @@ Elm.Main.make = function (_elm) {
                    ,_2: initLine
                    ,_3: 0
                    ,_4: 0};
+   var update = F2(function (inputSig,_p55) {
+      var _p56 = _p55;
+      var _p65 = _p56._4;
+      var _p64 = _p56._1;
+      var _p63 = _p56._0;
+      var _p62 = _p56._2;
+      var _p61 = _p56._3;
+      var _p57 = inputSig;
+      switch (_p57.ctor)
+      {case "InitData": var _p58 = _p57._0;
+           var speed = 0.5 * $Basics.toFloat(_p58.bpm) / 60000.0;
+           var line$ = _U.update(_p62,{speed: speed});
+           return {ctor: "_Tuple5"
+                  ,_0: toPeakObjects(_p58)
+                  ,_1: initScore
+                  ,_2: line$
+                  ,_3: _p58.bpm
+                  ,_4: _p58.start};
+         case "Click": if (_p57._0._1) {
+                 var _p59 = A2(clickPeaks,
+                 _p57._0._0,
+                 {ctor: "_Tuple5",_0: _p63,_1: _p64,_2: _p62,_3: _p61,_4: _p65});
+                 var peaks$ = _p59._0;
+                 var score$ = _p59._1;
+                 return {ctor: "_Tuple5"
+                        ,_0: peaks$
+                        ,_1: score$
+                        ,_2: _p62
+                        ,_3: _p61
+                        ,_4: _p65};
+              } else return {ctor: "_Tuple5"
+                            ,_0: _p63
+                            ,_1: _p64
+                            ,_2: _p62
+                            ,_3: _p61
+                            ,_4: _p65};
+         default: var line$ = A2(updateLine,_p57._0._1,_p62);
+           var _p60 = A2(updatePeaks,
+           _p57._0._0,
+           {ctor: "_Tuple5",_0: _p63,_1: _p64,_2: _p62,_3: _p61,_4: _p65});
+           var ps$ = _p60._0;
+           var score$ = _p60._1;
+           return {ctor: "_Tuple5"
+                  ,_0: ps$
+                  ,_1: score$
+                  ,_2: line$
+                  ,_3: _p61
+                  ,_4: _p65};}
+   });
    var main = A4($Signal.map3,
    view,
    $Window.dimensions,
