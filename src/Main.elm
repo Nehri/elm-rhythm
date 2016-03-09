@@ -92,8 +92,7 @@ type Hit = Miss | Good | Perfect
 type alias PeakObject = 
   { 
     timeDelta    : Float,
-    hitType      : Hit,
-    penaltyCount : Int
+    hitType      : Hit
   }
 
 {--
@@ -132,7 +131,7 @@ missImage =
 ----------------------------------------------------------------------------------------------
 
 {--
-B
+
   Port that accepts real-time amplitude/frequency data from Javascript.
   Named after the Lighthouse Pokemon, Ampharos : 
     http://static.zerochan.net/Ampharos.full.1491150.jpg
@@ -168,15 +167,12 @@ update inputSig (peaks, score, line, bpm, start) =
     InitData data               -> 
       let speed = (0.5*(toFloat data.bpm)) / 60000.0 in
       let line' = { line | speed = speed } in
-
-        (toPeakObjects data, score, line', data.bpm, data.start)
+        (toPeakObjects data, initScore, line', data.bpm, data.start)
     Click (current,b)           ->
-      if b then
-       case peaks of
-        []    -> (peaks, {score | penaltyCount = score.penaltyCount + 1}, line, bpm, start)
-        p::ps -> ((clickPeaks current start peaks), score, line, bpm, start)
-      else
-        (peaks, score, line, bpm, start)
+      if b then 
+        let (peaks',score') = (clickPeaks current (peaks, score, line, bpm, start)) in
+          (peaks', score', line, bpm, start)
+      else (peaks, score, line, bpm, start)
     TimeUpdate (current, delta) -> 
       let line' = updateLine delta line in
       let (ps', score') = updatePeaks current (peaks, score, line, bpm, start) in
@@ -188,27 +184,30 @@ update inputSig (peaks, score, line, bpm, start) =
 --}
 toPeakObjects : InitialData -> List PeakObject
 toPeakObjects data =
-    List.map (\time -> {timeDelta = time*1000, hitType = Miss, penaltyCount = 0}) data.peaks
+    List.map (\time -> {timeDelta = time*1000, hitType = Miss}) data.peaks
 
 {--
   Checks if the time the key was pressed coincides with any peaks and
-  updates them accordingly.
+  updates them and the score accordingly.
 --}
-clickPeaks : Time -> Time -> List PeakObject -> List PeakObject
-clickPeaks current start peaks =
+clickPeaks : Time -> State -> (List PeakObject, ScoreObject)
+clickPeaks current (peaks, score, line, bpm, start) =
   case peaks of
-  []   -> []
+  []    -> (peaks, {score | penaltyCount = score.penaltyCount+1 })
   p::ps ->
     if p.hitType == Miss then
       let timeDistance = (start + (p.timeDelta)) - current in
         if timeDistance > -75 && timeDistance < 30 then
-          {p | hitType = Perfect}::ps
+          ({p | hitType = Perfect}::ps,
+           {score | perfectCount = score.perfectCount+1 } )
         else if timeDistance > -175 && timeDistance < 75 then
-          {p | hitType = Good}::ps
-        else 
-          {p | penaltyCount = p.penaltyCount + 1}::ps
+          ({p | hitType = Perfect}::ps,
+           {score | goodCount = score.perfectCount+1 } )
+        else
+          (peaks, {score | penaltyCount = score.penaltyCount+1 })
     else
-      p::(clickPeaks current start ps)
+      let (ps',score') = clickPeaks current (ps, score, line, bpm, start) in
+        (p::ps',score')
 
 {--
   Updates the line height based on how much time has passed since the last
@@ -237,25 +236,17 @@ updatePeaks : Time -> State -> (List PeakObject, ScoreObject)
 updatePeaks current (peaks, score, line, bpm, start) =
   case peaks of
       []     -> (peaks, score)
-      p::ps  -> 
+      p::ps  ->
         let timeDistance = (start + (p.timeDelta)) - current in
           if timeDistance < -300 then
             case p.hitType of
               Miss    -> 
-                let score' = {
-                  score | missCount = score.missCount+1,
-                  penaltyCount = score.penaltyCount +p.penaltyCount } in
-                    updatePeaks current (ps, score', line, bpm, start)
+                let score' = {score | missCount = score.missCount+1} in
+                  updatePeaks current (ps, score', line, bpm, start)
               Good    -> 
-                let score' = {
-                  score | goodCount = score.goodCount+1,
-                  penaltyCount = score.penaltyCount +p.penaltyCount } in
-                    updatePeaks current (ps, score', line, bpm, start)
+                updatePeaks current (ps, score, line, bpm, start)
               Perfect -> 
-                let score' = {
-                  score | perfectCount = score.perfectCount+1,
-                  penaltyCount = score.penaltyCount +p.penaltyCount } in
-                    updatePeaks current (ps, score', line, bpm, start)
+                updatePeaks current (ps, score, line, bpm, start)
           else
             (peaks, score)
 
@@ -301,36 +292,52 @@ drawBackground (w,h) rt =
     ( C.moveX (toFloat (-1*(w//6))) (drawCircle (Color.rgba 13 78 73 0.05) rt.low_energy) ),
     ( C.moveX 0.0                   (drawCircle (Color.rgba 35 104 99 0.05) rt.mid_energy) ),
     ( C.moveX (toFloat (w//6))      (drawCircle (Color.rgba 65 131 126 0.05) rt.high_energy) ),
-    ( C.moveX (toFloat (w//3))      (drawCircle (Color.rgba 105 157 153 0.05) rt.treble_energy) ),
-    ( C.move (0,0) (C.filled (Color.rgba 0 71 65 0.9) (C.rect (toFloat w) (toFloat h))))
+    ( C.moveX (toFloat (w//3))      (drawCircle (Color.rgba 105 157 153 0.05) rt.treble_energy) )
+    --( C.move (0,0) (C.filled (Color.rgba 0 71 65 0.9) (C.rect (toFloat w) (toFloat h))))
   ]
+
+
+{--
+  Calculates the current score for the game, with 5 points assigned to each
+  "Good" hit, 10 points for each "Perfect" hit, and -1 points for each
+  time the space bar is hit outside the range of any dots.
+--}
+calcScore : ScoreObject -> Int
+calcScore score =
+  (score.goodCount * 5)
+  + (score.perfectCount * 10)
+  + (score.penaltyCount * (-1))
 
 {--
   Draws the score info in the top right corner of the screen.
 --}
-drawScore : (Float, Float) -> ScoreObject -> C.Form
+drawScore : (Float, Float) -> ScoreObject -> List C.Form
 drawScore (w,h) score =
-  let mC = score.missCount in
-  let gC = score.goodCount in
-  let pC = score.perfectCount in
-  let pen = score.penaltyCount in
-    C.move (w/2-100,h/2-100) (C.text (concat
-      [Text.typeface ["avant garde", "arial"] 
-        (Text.height 30 (Text.color (Color.rgba 138 0 94 0.5) 
-          (fromString 
-            ((toString ((gC*5)+(pC*10)+((-1)*pen))))))),
-       Text.typeface ["arial"]
-        (Text.height 30 (Text.color (Color.rgba 138 0 94 0.5)
-          (fromString
-            ((toString (gC+pC)) ++ " / " ++ (toString (gC+pC+mC))))))]))
+  let mC = toFloat score.missCount in
+  let gC = toFloat score.goodCount in
+  let pC = toFloat score.perfectCount in
+  let pen = toFloat score.penaltyCount in
+  let percent = (round (100*(gC+pC)/(gC+pC+mC))) in
+  let percentStr = case gC+pC+mC of
+    0  -> (toString 0) ++ "%"
+    _  -> (toString (round (100*(gC+pC)/(gC+pC+mC)))) ++ "%" in
+  let best = case score.best of
+    Nothing  -> Text.empty
+    Just x   -> Text.typeface ["avant garde", "arial"]
+                  (Text.height 15 (Text.color (Color.rgba 138 0 94 0.5)
+                    (fromString ("Best Score: " ++ 
+                      (toString x))))) in
+      [C.move (0,h/2-100) (C.text 
+        (Text.typeface ["avant garde", "arial"] 
+          (Text.height 50 (Text.color (Color.rgba 138 0 94 0.5) 
+            (fromString 
+              ((toString (calcScore score)))))))),
+       C.move (w/2-50, h/2-100) (C.text
+        (Text.typeface ["avant garde", "arial"]
+          (Text.height 15 (Text.color (Color.rgba 138 0 94 0.5)
+            (fromString percentStr))))),
+       C.move (w/2-75, h/2-150) (C.text best)]
 
-   {--
-   (C.move (0, h/2-100) (C.text (Text.typeface ["avant garde"]
-      (Text.height 30 (Text.color (Color.rgba 138 0 94 0.5)
-         (fromString
-          (toString score)))))))
-
---}
 {--
   Draws a dot ahead of time in the position the line will be in at the time 
   the peak happens in the music.
@@ -395,8 +402,8 @@ view : (Int, Int) -> RealTimeData ->  (Time, State) -> E.Element
 view (w,h) rt (t, (peaks, score, line, bpm, start)) =
   let (w',h') = (w, h-150) in
     C.collage w (h-100) ((linePosition (toFloat w,line.height*(toFloat (h'//2))))::
-      (drawScore (toFloat w,toFloat h) score)::
-      (List.append (drawPeaks (w',h') t (peaks, score, line, bpm, start)) (drawBackground (w,h) rt)))
+      (List.append (drawScore (toFloat w,toFloat h) score)
+      (List.append (drawPeaks (w',h') t (peaks, score, line, bpm, start)) (drawBackground (w,h) rt))))
 
 ----------------------------------------------------------------------------------------------
 --                                                                                          --
