@@ -42,7 +42,7 @@ initLine : LineObject
 initLine = {direction = 0, height = 1, speed = 0}
   
 initState : State
-initState = ([], initScore, initLine, 0, 0)
+initState = ([], initScore, initLine, 0, 0, Nothing)
 
 {--
   Merged signals relating to user input and peak analysis.
@@ -103,7 +103,8 @@ type alias ScoreObject =
     missCount    : Int,
     goodCount    : Int,
     perfectCount : Int,
-    penaltyCount : Int
+    penaltyCount : Int,
+    best         : Maybe Int
   }
 
 ----------------------------------------------------------------------------------------------
@@ -167,7 +168,16 @@ update inputSig (peaks, score, line, bpm, start) =
     InitData data               -> 
       let speed = (0.5*(toFloat data.bpm)) / 60000.0 in
       let line' = { line | speed = speed } in
-        (toPeakObjects data, initScore, line', data.bpm, data.start)
+      let cS = calcScore score
+      let best' = case score.best of
+        Nothing   -> 
+          if score == initScore then Nothing
+          else Just cS
+        Just prev -> 
+          if cS > prev then Just cS
+          else Just prev
+      in 
+        (toPeakObjects data, {initScore | best = best'}, line', data.bpm, data.start)
     Click (current,b)           ->
       if b then 
         let (peaks',score') = (clickPeaks current (peaks, score, line, bpm, start)) in
