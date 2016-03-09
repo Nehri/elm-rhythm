@@ -1,8 +1,8 @@
 Accomplishments:
 
 1) Ports
-	We set up two ports in our code, both of which listen for information from Javascript. 
-	Initially, we began this project by using Native for interacting with Javascript, but
+	We set up two ports in our code, both of which listen for information from js. 
+	Initially, we began this project by using Native for interacting with js, but
 	with the lack of documentation and the inability to keep a global state for callback
 	functions that our library required, we decided to work with ports instead.
 	The first port we made (named ampharos) sends real time amplitude and frequency data
@@ -16,7 +16,7 @@ Accomplishments:
 	library named p5 to send sound data to Elm. We did not write this library, but we
 	made bug fixes to it along the way as it is not a well-maintained library. Had we
 	known this at the beginning, we may have chosen a different library to build our
-	code off of, but overall using a seperate library for sound processing likely saved
+	code off of, but overall using a separate library for sound processing likely saved
 	us much time and many headaches, despite all the ones p5 caused.
 
 	We initially wanted to do all of our sound processing in real time, but due to lag and
@@ -58,14 +58,14 @@ Accomplishments:
 	incorrect time, but since this encouraged spamming the space bar rather than actually
 	focusing on the song, we introduced a slight penalty for such inputs. It is thus
 	technically possible to get a negative score, but we made the penalty fairly small
-	to prevent making player frustration caused by lag and inncacurate p5 data any worse.
+	to prevent making player frustration caused by lag and inaccurate p5 data any worse.
 
 5) Visual display
 	Our display is made up of three parts:
 	The background, which is made of 5 circles, is a visualization of the song's realtime
-	data. From left to right, each circle represts a frequency band, with its radius
+	data. From left to right, each circle represents a frequency band, with its radius
 	representing the energy (amplitude over a frequency range) in that band. Thus the
-	left cirlces pulse with the beat of the song, and the others grow and fade depending
+	left circles pulse with the beat of the song, and the others grow and fade depending
 	on the volume and instrumentation currently being used.
 	The bar, which moves up and down with the tempo of the song allowing the player to know
 	where in the song they are and when they are supposed to press the spacebar.
@@ -74,21 +74,22 @@ Accomplishments:
 	The peaks, which show up as circles. When the bar aligns with the y value of these peaks
 	the player is supposed to press the space bar, but we also move the x positions of the
 	peaks as a function of time so it seems that the song is moving throughout the whole 
-	field of play. We use seperate colors for peaks that are to be hit when the bar is
+	field of play. We use separate colors for peaks that are to be hit when the bar is
 	moving upwards as opposed to downwards to prevent ambiguities as to when a peak is
 	supposed to be hit. We also change the image of the peaks based on if the player
 	hits them as "Good" or "Perfect" or misses the peak entirely to give the player
 	visual feedback on if they are in sync with the game.
 
+
 Our experience with Elm:
 	While we would have liked to do sound processing in Elm, the lack of libraries,
-	and Elms inabillity to handle very large data-sets without using tail-recursion
+	and Elms inability to handle very large data-sets without using tail-recursion
 	made this impossible.
 
 	We lost a great deal of time trying to work with with Native code, but in
 	doing so learned more about how Elm works at the js level. While some
 	of the code is quite elegant, much of it was quite sketchy. I was
-	supprised that several List functions work by converting a List back
+	surprised that several List functions work by converting a List back
 	to a js array, calling the js function on the array, and then converting
 	the Array back to a List.
 
@@ -101,29 +102,46 @@ Our experience with Elm:
 	they aren't the small user base made finding help rather difficult. When
 	our js code broke, one google search lead to a StackExchange answer that
 	fixed the problem, but one unhelpful Elm error caused by a single typo
-	causing an infinitly recursive type alias took hours to debug.
+	causing an infinity recursive type alias took hours to debug.
 
 	Before condensing our State and update functions, we had difficulties handling
 	multiple signals causing different parts of our state to update but requiring
 	data from other parts of the state. While condensing our state fixed this problem,
 	it made it harder to make each part of our state modular, and whenever we changed
 	one part of our state required us to change all other parts as well, which would
-	not have been a problem in an imperative language. 	
+	not have been a problem in an imperative language.
 
 	Elm's type system is very nice, and helped catch many errors. If we had
 	made different types for time deltas vs. absolute time, we might even have
-	caugt a few logic erros at compile time.
+	caught a few logic errors at compile time.
 
-Challenges:
+	While we have found Maybes annoying in the past, they proved
+	very useful when creating a Best score that may or may not exist, and 
+	if our data set was not pre-computed, we might have found Elms ability
+	to handle uncertainty with Maybes even more useful.
+
+	Overall, Elm had many challenges due to it being such a new language,
+	but its ability to handle signals reactively, and its stability
+	relative to pure js were much appreciated.
+
+
+Other Challenges:
 	Many challenges were incurred by using the p5 library. One notable bug was that
 	calling the reverseBuffer function would start playback even if the song
 	had never been told to start, as the function falsely assumed the song was
-	already playing when the function was called.
+	already playing when the function was called. Also, the tempo data that
+	p5 calculated was never returned for some reason, but we changed that since we
+	needed it to move our bar with the beat.
 
-	Aaron's inability to spell caused one minor setback when loading the Javascript file on 
+	Learning how to handle callbacks in js was also an unexpected challenge.
+	In-fact this project probably had more difficulties with js than elm,
+	which speaks quite a bit to elm's usability and stability.
+
+	Aaron's inability to spell caused one minor setback when loading the js file on 
 	the page silently failed because the file was named differently from what the html was
 	searching for. While this was Aaron's fault, the lack of documentation on how to set
 	up an HTML file that used both elm.js and other js files didn't help.
+
 
 Known bugs:
 	When a peak is right at the uper or lower edge of play, and is passed twice by the bar,
@@ -131,4 +149,18 @@ Known bugs:
 	then will also change to an incorrect color. We think this is related to how the peaks are
 	placed by calculating the lines future position based on its current direction, but are
 	unsure exactly why this occurs. Since it only occurs after a peak could have been hit
-	this bug fortunatly does not harm the player's abillity to play the game.
+	this bug fortunately does not harm the player's ability to play the game.
+
+	Whenever a peak is hit, there is noticeable lag. This is more of a nuisance than a
+	bug, but if we could find a solution it would make play more enjoyable.
+
+	We still are having difficulties with p5 not finding peaks in some stretches
+	of music, but unless we are willing to completely re-write the peak
+	analyzing functions, there is not much we can do about this.
+
+
+Future Plans:
+	If we were to continue working this project, we would like to implement the following:
+	Calibration mode
+	Difficulty levels
+	GUI for selecting sound files
