@@ -36,13 +36,13 @@ import Keyboard
 type alias State = (List PeakObject, ScoreObject, LineObject, Int, Time)
 
 initScore : ScoreObject
-initScore = {missCount = 0, goodCount = 0, perfectCount = 0, penaltyCount = 0}
+initScore = {missCount = 0, goodCount = 0, perfectCount = 0, penaltyCount = 0, best = Nothing}
 
 initLine : LineObject
 initLine = {direction = 0, height = 1, speed = 0}
   
 initState : State
-initState = ([], initScore, initLine, 0, 0, Nothing)
+initState = ([], initScore, initLine, 0, 0)
 
 {--
   Merged signals relating to user input and peak analysis.
@@ -168,16 +168,17 @@ update inputSig (peaks, score, line, bpm, start) =
     InitData data               -> 
       let speed = (0.5*(toFloat data.bpm)) / 60000.0 in
       let line' = { line | speed = speed } in
-      let cS = calcScore score
-      let best' = case score.best of
-        Nothing   -> 
-          if score == initScore then Nothing
-          else Just cS
-        Just prev -> 
-          if cS > prev then Just cS
-          else Just prev
-      in 
-        (toPeakObjects data, {initScore | best = best'}, line', data.bpm, data.start)
+      let cS = calcScore score in
+      let best' = 
+        case score.best of
+          Nothing   -> 
+            if score == initScore then Nothing
+            else Just cS
+          Just prev -> 
+            if cS > prev then Just cS
+            else Just prev
+        in 
+          (toPeakObjects data, {initScore | best = best'}, line', data.bpm, data.start)
     Click (current,b)           ->
       if b then 
         let (peaks',score') = (clickPeaks current (peaks, score, line, bpm, start)) in
