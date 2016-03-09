@@ -302,7 +302,7 @@ drawBackground (w,h) rt =
     ( C.moveX 0.0                   (drawCircle (Color.rgba 35 104 99 0.05) rt.mid_energy) ),
     ( C.moveX (toFloat (w//6))      (drawCircle (Color.rgba 65 131 126 0.05) rt.high_energy) ),
     ( C.moveX (toFloat (w//3))      (drawCircle (Color.rgba 105 157 153 0.05) rt.treble_energy) ),
-    ( C.move (toFloat (-1*(w//2)), toFloat (h//2)) (C.filled (Color.rgba 0 71 65 0.5) (C.rect (toFloat w) (toFloat h))))
+    ( C.move (0,0) (C.filled (Color.rgba 0 71 65 0.9) (C.rect (toFloat w) (toFloat h))))
   ]
 
 {--
