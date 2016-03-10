@@ -42,3 +42,14 @@ If using Windows or as a default:
 		2) Paste an mp3 file of your choice in src\ instead.
 		3) Rename said mp3 to "soundfile.mp3".
 		4) Open out.html in Firefox as above.
+
+Acknowledgments:
+
+	The sample song "Electroman Adventures" included with the code was created by Waterflame
+	which we use with the permissions provided at http://www.waterflamemusic.com/using-my-tracks
+	If you like the music, be sure to check more out at www.youtube.com/waterflame89
+
+	The images for Missed, Good, and Perfect hits are from http://osuskinner.com/
+
+	We used the p5 sound library for our sound analysis, which can be found at
+	http://p5js.org/reference/#/libraries/p5.sound
