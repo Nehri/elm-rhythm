@@ -25,7 +25,7 @@ Elm.Main.make = function (_elm) {
                      ,high_energy: 0.0
                      ,treble_energy: 0.0};
    var calcScore = function (score) {
-      return score.goodCount * 5 + score.perfectCount * 10 + score.penaltyCount * -1;
+      return score.goodCount * 100 + score.perfectCount * 300 + score.penaltyCount * -50;
    };
    var drawScore = F2(function (_p0,score) {
       var _p1 = _p0;
@@ -315,17 +315,19 @@ Elm.Main.make = function (_elm) {
                   } else if (_U.cmp(timeDistance,700) > 0) return _U.list([]);
                   else {
                         var r = _U.cmp(timeDistance,
-                        -200) < 0 ? 10 : _U.cmp(timeDistance,
-                        -100) < 0 ? 25 : _U.cmp(timeDistance,
-                        -50) < 0 ? 35 : _U.cmp(timeDistance,
-                        0) < 0 ? 45 : _U.cmp(timeDistance,
-                        300) < 0 ? 50 : _U.cmp(timeDistance,
-                        350) < 0 ? 45 : _U.cmp(timeDistance,
-                        400) < 0 ? 40 : _U.cmp(timeDistance,
-                        450) < 0 ? 35 : _U.cmp(timeDistance,
-                        500) < 0 ? 30 : _U.cmp(timeDistance,
-                        550) < 0 ? 25 : _U.cmp(timeDistance,
-                        600) < 0 ? 22 : _U.cmp(timeDistance,650) < 0 ? 20 : 10;
+                        -2750) < 0 ? 10 : _U.cmp(timeDistance,
+                        -2500) < 0 ? 25 : _U.cmp(timeDistance,
+                        -200) < 0 ? 45 : _U.cmp(timeDistance,
+                        -100) < 0 ? 55 : _U.cmp(timeDistance,
+                        -50) < 0 ? 60 : _U.cmp(timeDistance,
+                        0) < 0 ? 65 : _U.cmp(timeDistance,
+                        300) < 0 ? 70 : _U.cmp(timeDistance,
+                        350) < 0 ? 65 : _U.cmp(timeDistance,
+                        400) < 0 ? 60 : _U.cmp(timeDistance,
+                        450) < 0 ? 50 : _U.cmp(timeDistance,
+                        500) < 0 ? 40 : _U.cmp(timeDistance,
+                        550) < 0 ? 30 : _U.cmp(timeDistance,
+                        600) < 0 ? 20 : _U.cmp(timeDistance,650) < 0 ? 12 : 10;
                         return A2($List._op["::"],
                         A5(drawPeak,
                         {ctor: "_Tuple2",_0: _p40,_1: _p39},
