@@ -7853,7 +7853,7 @@ Elm.Main.make = function (_elm) {
                A2($Text.height,
                15,
                A2($Text.color,
-               A4($Color.rgba,138,0,94,0.5),
+               A4($Color.rgba,138,0,94,0.4),
                $Text.fromString(A2($Basics._op["++"],
                "Best Score: ",
                $Basics.toString(_p3._0))))));
@@ -7866,7 +7866,7 @@ Elm.Main.make = function (_elm) {
                      A2($Text.height,
                      50,
                      A2($Text.color,
-                     A4($Color.rgba,138,0,94,0.5),
+                     A4($Color.rgba,138,0,94,0.4),
                      $Text.fromString($Basics.toString(calcScore(score))))))))
                      ,A2($Graphics$Collage.move,
                      {ctor: "_Tuple2",_0: _p1._0 / 2 - 50,_1: _p4 / 2 - 100},
@@ -7875,7 +7875,7 @@ Elm.Main.make = function (_elm) {
                      A2($Text.height,
                      15,
                      A2($Text.color,
-                     A4($Color.rgba,138,0,94,0.5),
+                     A4($Color.rgba,138,0,94,0.4),
                      $Text.fromString(percentStr))))))
                      ,A2($Graphics$Collage.move,
                      {ctor: "_Tuple2",_0: 0,_1: _p4 / 2 - 140},
@@ -8015,8 +8015,9 @@ Elm.Main.make = function (_elm) {
                                                                                                                                                                        v.treble_energy)} : _U.badPort("an object with fields `amplitude`, `bass_energy`, `low_energy`, `mid_energy`, `high_energy`, `treble_energy`",
       v);
    });
-   var missImage = "http://www.clker.com/cliparts/5/9/5/4/12456868161725760927raemi_Cross_Out.svg.med.png";
-   var hitImage = "https://uxtraining.com/assets/UX2-f717a856d969481dceffd400d6cfaf2c.png";
+   var missImage = "miss.png";
+   var goodImage = "good.png";
+   var perfectImage = "perfect.png";
    var ScoreObject = F5(function (a,b,c,d,e) {
       return {missCount: a
              ,goodCount: b
@@ -8049,14 +8050,14 @@ Elm.Main.make = function (_elm) {
       ,_0: $Basics.toFloat(w2)
       ,_1: h2 * $Basics.toFloat(_p26 / 2 | 0)},
       A2(drawImage,
-      hitImage,
+      goodImage,
       $Basics.round(2 * r))) : _U.eq(peak.hitType,
       Perfect) ? A2($Graphics$Collage.move,
       {ctor: "_Tuple2"
       ,_0: $Basics.toFloat(w2)
       ,_1: h2 * $Basics.toFloat(_p26 / 2 | 0)},
       A2(drawImage,
-      hitImage,
+      perfectImage,
       $Basics.round(2 * r))) : _U.cmp(timeDistance,
       -175) < 0 ? A2($Graphics$Collage.move,
       {ctor: "_Tuple2"
@@ -8070,12 +8071,12 @@ Elm.Main.make = function (_elm) {
       ,_0: $Basics.toFloat(w2)
       ,_1: h2 * $Basics.toFloat(_p26 / 2 | 0)},
       A2(drawCircle,
-      A4($Color.rgba,95,86,255,0.8),
+      A4($Color.rgba,185,241,195,0.9),
       r)) : A2($Graphics$Collage.move,
       {ctor: "_Tuple2"
       ,_0: $Basics.toFloat(w2)
       ,_1: h2 * $Basics.toFloat(_p26 / 2 | 0)},
-      A2(drawCircle,A4($Color.rgba,124,255,153,0.8),r));
+      A2(drawCircle,A4($Color.rgba,182,242,244,0.9),r));
    });
    var drawPeaks = F3(function (_p28,current,_p27) {
       drawPeaks: while (true) {
@@ -8375,7 +8376,8 @@ Elm.Main.make = function (_elm) {
                              ,Perfect: Perfect
                              ,PeakObject: PeakObject
                              ,ScoreObject: ScoreObject
-                             ,hitImage: hitImage
+                             ,perfectImage: perfectImage
+                             ,goodImage: goodImage
                              ,missImage: missImage
                              ,update: update
                              ,toPeakObjects: toPeakObjects

@@ -114,13 +114,17 @@ type alias ScoreObject =
 --                                                                                          --
 ----------------------------------------------------------------------------------------------
 
-hitImage : String
-hitImage = 
-    "https://uxtraining.com/assets/UX2-f717a856d969481dceffd400d6cfaf2c.png"
+perfectImage : String
+perfectImage = 
+  "perfect.png"
+
+goodImage : String
+goodImage = 
+  "good.png"
 
 missImage : String
 missImage =
-    "http://www.clker.com/cliparts/5/9/5/4/12456868161725760927raemi_Cross_Out.svg.med.png"
+    "miss.png"
 
 ----------------------------------------------------------------------------------------------
 --                                                                                          --
@@ -338,17 +342,17 @@ drawScore (w,h) score =
   let best = case score.best of
     Nothing  -> Text.empty
     Just x   -> Text.typeface ["avant garde", "arial"]
-                  (Text.height 15 (Text.color (Color.rgba 138 0 94 0.5)
+                  (Text.height 15 (Text.color (Color.rgba 138 0 94 0.4)
                     (fromString ("Best Score: " ++ 
                       (toString x))))) in
       [C.move (0,h/2-100) (C.text 
         (Text.typeface ["avant garde", "arial"] 
-          (Text.height 50 (Text.color (Color.rgba 138 0 94 0.5) 
+          (Text.height 50 (Text.color (Color.rgba 138 0 94 0.4) 
             (fromString 
               ((toString (calcScore score)))))))),
        C.move (w/2-50, h/2-100) (C.text
         (Text.typeface ["avant garde", "arial"]
-          (Text.height 15 (Text.color (Color.rgba 138 0 94 0.5)
+          (Text.height 15 (Text.color (Color.rgba 138 0 94 0.4)
             (fromString percentStr))))),
        C.move (0, h/2-140) (C.text best)]
 
@@ -367,15 +371,15 @@ drawPeak (w,h) peak line timeDistance r =
       else (w'//2) - (mod%w')
   in
     if peak.hitType == Good then
-      (C.move (toFloat w2, h2*(toFloat (h//2))) (drawImage hitImage (round (2*r))))
+      (C.move (toFloat w2, h2*(toFloat (h//2))) (drawImage goodImage (round (2*r))))
     else if peak.hitType == Perfect then
-      (C.move (toFloat w2, h2*(toFloat (h//2))) (drawImage hitImage (round (2*r))))
+      (C.move (toFloat w2, h2*(toFloat (h//2))) (drawImage perfectImage (round (2*r))))
     else if timeDistance < -175 then
       (C.move (toFloat w2, h2*(toFloat (h//2))) (drawImage missImage (round (2*r))))
     else if futurePos.direction == 0 then
-      (C.move (toFloat w2, h2*(toFloat (h//2))) (drawCircle (Color.rgba 95 86 255 0.8) r))
+      (C.move (toFloat w2, h2*(toFloat (h//2))) (drawCircle (Color.rgba 185 241 195 0.9) r))
     else
-      (C.move (toFloat w2, h2*(toFloat (h//2))) (drawCircle (Color.rgba 124 255 153 0.8) r))
+      (C.move (toFloat w2, h2*(toFloat (h//2))) (drawCircle (Color.rgba 182 242 244 0.9) r))
 
 {--
   Cycles through the peaks in the state and draws any that will be happening soon.
@@ -484,3 +488,4 @@ objectToValue sound =
     Encode.object <|
         [ ("amplitude", Encode.float sound.amplitude)]
 --}
+
