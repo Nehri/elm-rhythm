@@ -322,9 +322,9 @@ drawBackground (w,h) rt =
 --}
 calcScore : ScoreObject -> Int
 calcScore score =
-  (score.goodCount * 5)
-  + (score.perfectCount * 10)
-  + (score.penaltyCount * (-1))
+  (score.goodCount * 100)
+  + (score.perfectCount * 300)
+  + (score.penaltyCount * (-50))
 
 {--
   Draws the score info in the top right corner of the screen.
@@ -398,18 +398,20 @@ drawPeaks (w,h) current (peaks, score, line, bpm, start, prev) =
               []
             else
               let r =
-                if timeDistance < -200 then 10
-                else if timeDistance < -100 then 25
-                else if timeDistance < -50 then 35
-                else if timeDistance < 0 then 45
-                else if timeDistance < 300 then 50
-                else if timeDistance < 350 then 45
-                else if timeDistance < 400 then 40
-                else if timeDistance < 450 then 35
-                else if timeDistance < 500 then 30
-                else if timeDistance < 550 then 25
-                else if timeDistance < 600 then 22
-                else if timeDistance < 650 then 20
+                if timeDistance < -2750 then 10
+                else if timeDistance < -2500 then 25
+                else if timeDistance < -200 then 45
+                else if timeDistance < -100 then 55
+                else if timeDistance < -50 then 60
+                else if timeDistance < 0 then 65
+                else if timeDistance < 300 then 70
+                else if timeDistance < 350 then 65
+                else if timeDistance < 400 then 60
+                else if timeDistance < 450 then 50
+                else if timeDistance < 500 then 40
+                else if timeDistance < 550 then 30
+                else if timeDistance < 600 then 20
+                else if timeDistance < 650 then 12
                 else 10 in
                   (drawPeak (w,h) p line timeDistance r)::(drawPeaks (w,h) current (ps, score, line, bpm, start, prev))
 
