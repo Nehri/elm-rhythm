@@ -420,10 +420,10 @@ drawPeaks (w,h) current (peaks, score, line, bpm, start, prev) =
 --}
 view : (Int, Int) -> RealTimeData ->  (Time, State) -> E.Element
 view (w,h) rt (t, (peaks, score, line, bpm, start, prev)) =
-  let (w',h') = (w, h-150) in
+  let h' = h-275 in
     C.collage w (h-100) ((linePosition (toFloat w,line.height*(toFloat (h'//2))))::
       (List.append (drawScore (toFloat w,toFloat h) score)
-      (List.append (drawPeaks (w',h') t (peaks, score, line, bpm, start, prev)) (drawBackground (w,h) rt))))
+      (List.append (drawPeaks (w,h') t (peaks, score, line, bpm, start, prev)) (drawBackground (w,h) rt))))
 
 ----------------------------------------------------------------------------------------------
 --                                                                                          --

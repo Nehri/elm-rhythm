@@ -8149,39 +8149,37 @@ Elm.Main.make = function (_elm) {
    });
    var view = F3(function (_p42,rt,_p41) {
       var _p43 = _p42;
-      var _p49 = _p43._0;
-      var _p48 = _p43._1;
+      var _p48 = _p43._0;
+      var _p47 = _p43._1;
       var _p44 = _p41;
-      var _p47 = _p44._1._1;
-      var _p46 = _p44._1._2;
-      var _p45 = {ctor: "_Tuple2",_0: _p49,_1: _p48 - 150};
-      var w$ = _p45._0;
-      var h$ = _p45._1;
+      var _p46 = _p44._1._1;
+      var _p45 = _p44._1._2;
+      var h$ = _p47 - 275;
       return A3($Graphics$Collage.collage,
-      _p49,
-      _p48 - 100,
+      _p48,
+      _p47 - 100,
       A2($List._op["::"],
       linePosition({ctor: "_Tuple2"
-                   ,_0: $Basics.toFloat(_p49)
-                   ,_1: _p46.height * $Basics.toFloat(h$ / 2 | 0)}),
+                   ,_0: $Basics.toFloat(_p48)
+                   ,_1: _p45.height * $Basics.toFloat(h$ / 2 | 0)}),
       A2($List.append,
       A2(drawScore,
       {ctor: "_Tuple2"
-      ,_0: $Basics.toFloat(_p49)
-      ,_1: $Basics.toFloat(_p48)},
-      _p47),
+      ,_0: $Basics.toFloat(_p48)
+      ,_1: $Basics.toFloat(_p47)},
+      _p46),
       A2($List.append,
       A3(drawPeaks,
-      {ctor: "_Tuple2",_0: w$,_1: h$},
+      {ctor: "_Tuple2",_0: _p48,_1: h$},
       _p44._0,
       {ctor: "_Tuple6"
       ,_0: _p44._1._0
-      ,_1: _p47
-      ,_2: _p46
+      ,_1: _p46
+      ,_2: _p45
       ,_3: _p44._1._3
       ,_4: _p44._1._4
       ,_5: _p44._1._5}),
-      A2(drawBackground,{ctor: "_Tuple2",_0: _p49,_1: _p48},rt)))));
+      A2(drawBackground,{ctor: "_Tuple2",_0: _p48,_1: _p47},rt)))));
    });
    var Miss = {ctor: "Miss"};
    var toPeakObjects = function (data) {
@@ -8191,46 +8189,46 @@ Elm.Main.make = function (_elm) {
       },
       data.peaks);
    };
-   var clickPeaks = F2(function (current,_p50) {
-      var _p51 = _p50;
-      var _p58 = _p51._4;
-      var _p57 = _p51._1;
-      var _p56 = _p51._0;
-      var _p52 = _p56;
-      if (_p52.ctor === "[]") {
+   var clickPeaks = F2(function (current,_p49) {
+      var _p50 = _p49;
+      var _p57 = _p50._4;
+      var _p56 = _p50._1;
+      var _p55 = _p50._0;
+      var _p51 = _p55;
+      if (_p51.ctor === "[]") {
             return {ctor: "_Tuple2"
-                   ,_0: _p56
-                   ,_1: _U.update(_p57,{penaltyCount: _p57.penaltyCount + 1})};
+                   ,_0: _p55
+                   ,_1: _U.update(_p56,{penaltyCount: _p56.penaltyCount + 1})};
          } else {
-            var _p55 = _p52._1;
-            var _p54 = _p52._0;
-            if (_U.eq(_p54.hitType,Miss)) {
-                  var timeDistance = _p58 + _p54.timeDelta - current;
+            var _p54 = _p51._1;
+            var _p53 = _p51._0;
+            if (_U.eq(_p53.hitType,Miss)) {
+                  var timeDistance = _p57 + _p53.timeDelta - current;
                   return _U.cmp(timeDistance,-75) > 0 && _U.cmp(timeDistance,
                   30) < 0 ? {ctor: "_Tuple2"
-                            ,_0: A2($List._op["::"],_U.update(_p54,{hitType: Perfect}),_p55)
-                            ,_1: _U.update(_p57,
-                            {perfectCount: _p57.perfectCount + 1})} : _U.cmp(timeDistance,
+                            ,_0: A2($List._op["::"],_U.update(_p53,{hitType: Perfect}),_p54)
+                            ,_1: _U.update(_p56,
+                            {perfectCount: _p56.perfectCount + 1})} : _U.cmp(timeDistance,
                   -175) > 0 && _U.cmp(timeDistance,75) < 0 ? {ctor: "_Tuple2"
-                                                             ,_0: A2($List._op["::"],_U.update(_p54,{hitType: Good}),_p55)
-                                                             ,_1: _U.update(_p57,
-                                                             {goodCount: _p57.goodCount + 1})} : {ctor: "_Tuple2"
-                                                                                                 ,_0: _p56
-                                                                                                 ,_1: _U.update(_p57,{penaltyCount: _p57.penaltyCount + 1})};
+                                                             ,_0: A2($List._op["::"],_U.update(_p53,{hitType: Good}),_p54)
+                                                             ,_1: _U.update(_p56,
+                                                             {goodCount: _p56.goodCount + 1})} : {ctor: "_Tuple2"
+                                                                                                 ,_0: _p55
+                                                                                                 ,_1: _U.update(_p56,{penaltyCount: _p56.penaltyCount + 1})};
                } else {
-                  var _p53 = A2(clickPeaks,
+                  var _p52 = A2(clickPeaks,
                   current,
                   {ctor: "_Tuple6"
-                  ,_0: _p55
-                  ,_1: _p57
-                  ,_2: _p51._2
-                  ,_3: _p51._3
-                  ,_4: _p58
-                  ,_5: _p51._5});
-                  var ps$ = _p53._0;
-                  var score$ = _p53._1;
+                  ,_0: _p54
+                  ,_1: _p56
+                  ,_2: _p50._2
+                  ,_3: _p50._3
+                  ,_4: _p57
+                  ,_5: _p50._5});
+                  var ps$ = _p52._0;
+                  var score$ = _p52._1;
                   return {ctor: "_Tuple2"
-                         ,_0: A2($List._op["::"],_p54,ps$)
+                         ,_0: A2($List._op["::"],_p53,ps$)
                          ,_1: score$};
                }
          }
@@ -8269,87 +8267,87 @@ Elm.Main.make = function (_elm) {
                    ,_3: 0
                    ,_4: 0.0
                    ,_5: 0.0};
-   var update = F2(function (inputSig,_p59) {
-      var _p60 = _p59;
-      var _p74 = _p60._4;
-      var _p73 = _p60._1;
-      var _p72 = _p60._5;
-      var _p71 = _p60._0;
-      var _p70 = _p60._2;
-      var _p69 = _p60._3;
-      var _p61 = inputSig;
-      switch (_p61.ctor)
-      {case "InitData": var _p64 = _p61._0;
-           var speed = 0.5 * $Basics.toFloat(_p64.bpm) / 60000.0;
-           var line$ = _U.update(_p70,{speed: speed});
-           var cS = calcScore(_p73);
+   var update = F2(function (inputSig,_p58) {
+      var _p59 = _p58;
+      var _p73 = _p59._4;
+      var _p72 = _p59._1;
+      var _p71 = _p59._5;
+      var _p70 = _p59._0;
+      var _p69 = _p59._2;
+      var _p68 = _p59._3;
+      var _p60 = inputSig;
+      switch (_p60.ctor)
+      {case "InitData": var _p63 = _p60._0;
+           var speed = 0.5 * $Basics.toFloat(_p63.bpm) / 60000.0;
+           var line$ = _U.update(_p69,{speed: speed});
+           var cS = calcScore(_p72);
            var best$ = function () {
-              var _p62 = _p73.best;
-              if (_p62.ctor === "Nothing") {
-                    return _U.eq(_p73.missCount,0) && (_U.eq(_p73.goodCount,
-                    0) && _U.eq(_p73.perfectCount,
+              var _p61 = _p72.best;
+              if (_p61.ctor === "Nothing") {
+                    return _U.eq(_p72.missCount,0) && (_U.eq(_p72.goodCount,
+                    0) && _U.eq(_p72.perfectCount,
                     0)) ? $Maybe.Nothing : $Maybe.Just(cS);
                  } else {
-                    var _p63 = _p62._0;
+                    var _p62 = _p61._0;
                     return _U.cmp(cS,
-                    _p63) > 0 ? $Maybe.Just(cS) : $Maybe.Just(_p63);
+                    _p62) > 0 ? $Maybe.Just(cS) : $Maybe.Just(_p62);
                  }
            }();
            return {ctor: "_Tuple6"
-                  ,_0: toPeakObjects(_p64)
+                  ,_0: toPeakObjects(_p63)
                   ,_1: _U.update(initScore,{best: best$})
                   ,_2: line$
-                  ,_3: _p64.bpm
-                  ,_4: _p64.start
-                  ,_5: _p64.start};
-         case "Click": var _p66 = _p61._0._0;
-           var line$ = A2(updateLine,_p66 - _p72,_p70);
-           if (_p61._0._1) {
-                 var _p65 = A2(clickPeaks,
-                 _p66,
+                  ,_3: _p63.bpm
+                  ,_4: _p63.start
+                  ,_5: _p63.start};
+         case "Click": var _p65 = _p60._0._0;
+           var line$ = A2(updateLine,_p65 - _p71,_p69);
+           if (_p60._0._1) {
+                 var _p64 = A2(clickPeaks,
+                 _p65,
                  {ctor: "_Tuple6"
-                 ,_0: _p71
-                 ,_1: _p73
+                 ,_0: _p70
+                 ,_1: _p72
                  ,_2: line$
-                 ,_3: _p69
-                 ,_4: _p74
-                 ,_5: _p72});
-                 var peaks$ = _p65._0;
-                 var score$ = _p65._1;
+                 ,_3: _p68
+                 ,_4: _p73
+                 ,_5: _p71});
+                 var peaks$ = _p64._0;
+                 var score$ = _p64._1;
                  return {ctor: "_Tuple6"
                         ,_0: peaks$
                         ,_1: score$
                         ,_2: line$
-                        ,_3: _p69
-                        ,_4: _p74
-                        ,_5: _p66};
+                        ,_3: _p68
+                        ,_4: _p73
+                        ,_5: _p65};
               } else return {ctor: "_Tuple6"
-                            ,_0: _p71
-                            ,_1: _p73
+                            ,_0: _p70
+                            ,_1: _p72
                             ,_2: line$
-                            ,_3: _p69
-                            ,_4: _p74
-                            ,_5: _p66};
-         default: var _p68 = _p61._0._0;
-           var line$ = A2(updateLine,_p68 - _p72,_p70);
-           var _p67 = A2(updatePeaks,
-           _p68,
+                            ,_3: _p68
+                            ,_4: _p73
+                            ,_5: _p65};
+         default: var _p67 = _p60._0._0;
+           var line$ = A2(updateLine,_p67 - _p71,_p69);
+           var _p66 = A2(updatePeaks,
+           _p67,
            {ctor: "_Tuple6"
-           ,_0: _p71
-           ,_1: _p73
+           ,_0: _p70
+           ,_1: _p72
            ,_2: line$
-           ,_3: _p69
-           ,_4: _p74
-           ,_5: _p72});
-           var ps$ = _p67._0;
-           var score$ = _p67._1;
+           ,_3: _p68
+           ,_4: _p73
+           ,_5: _p71});
+           var ps$ = _p66._0;
+           var score$ = _p66._1;
            return {ctor: "_Tuple6"
                   ,_0: ps$
                   ,_1: score$
                   ,_2: line$
-                  ,_3: _p69
-                  ,_4: _p74
-                  ,_5: _p68};}
+                  ,_3: _p68
+                  ,_4: _p73
+                  ,_5: _p67};}
    });
    var main = A4($Signal.map3,
    view,
